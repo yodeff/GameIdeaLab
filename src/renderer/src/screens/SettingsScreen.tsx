@@ -4,6 +4,7 @@ import { AI_COUNT_MAX, AI_COUNT_MIN, type AiConnection, type Fidelity, type Them
 import { useAi, useAiActions } from '../app/AiContext'
 import { useActions, useAppState } from '../app/AppContext'
 import { PlanBadge } from '../components/AiIdeaPanel'
+import { ModelSelect, ReasoningSelect } from '../components/ModelControls'
 
 const THEMES: { value: Theme; label: string }[] = [
   { value: 'system', label: 'システムに合わせる' },
@@ -125,6 +126,7 @@ export function SettingsScreen() {
     apiKey: auth?.apiKey.configured ?? false
   }
   const connected = canUse[settings.aiConnection]
+  const selectedModel = ai.models?.find((m) => m.id === (settings.aiModel ?? 'gpt-6.1-sol'))
 
   useEffect(() => {
     if (connected) void aiActions.loadModels()
@@ -172,21 +174,16 @@ export function SettingsScreen() {
         <div className="form-grid">
           <label htmlFor="model">モデル</label>
           <div className="row">
-            <select
-              id="model"
-              value={settings.aiModel ?? ''}
-              onChange={(e) => void app.updateSettings({ aiModel: e.target.value || null })}
-            >
-              <option value="">既定（gpt-6.1-sol）</option>
-              {ai.models?.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.label}
-                </option>
-              ))}
-              {settings.aiModel && !ai.models?.some((m) => m.id === settings.aiModel) && <option value={settings.aiModel}>{settings.aiModel}</option>}
-            </select>
+            <ModelSelect id="model" />
             {!connected && <span className="hint">接続するとモデルの一覧が出ます</span>}
             {ai.modelsError && <span className="hint">一覧を取れませんでした（{ai.modelsError.message}）</span>}
+            {selectedModel?.description && <span className="hint">{selectedModel.description}</span>}
+          </div>
+
+          <label htmlFor="reasoning">考える深さ</label>
+          <div className="row">
+            <ReasoningSelect id="reasoning" />
+            <span className="hint">浅いほど早く届き、利用量も少なくなります。深いほど時間と利用量が増えます（fast モードとは別のもので、fast モードは使いません）</span>
           </div>
 
           <label htmlFor="count">案の数の既定</label>

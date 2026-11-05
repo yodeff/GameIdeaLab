@@ -10,16 +10,23 @@ export const DIRECTIONS: readonly Direction[] = ['王道', '変化球', '実験�
 export type GameIdeaBody = {
   direction: Direction
   title: string
-  /** この組み合わせとジャンルで立てた課題（版 3 で追加。コンセプトはその解き方） */
+  /** ねらい。この組み合わせとジャンルで立てた課題（版 3 で追加。コンセプトはその解き方） */
   problem: string
+  /** キャッチコピー（版 5 で追加） */
+  catch_copy: string
   concept: string
-  overview: string
+  /** プレイの一場面。画面・操作・結果（版 5 で追加） */
+  scene: string
+  /** 画面。視点と、何がどこに見えるか（版 5 で追加） */
+  screen: string
+  /** どんなゲームか（版 1〜4。版 5 からは「ひとことで」と「画面」に分けたので、古い案だけが持つ） */
+  overview?: string | null
   player_actions: string
   goal: string
   /** プレイヤーが毎回迷う選択（版 2 で追加） */
   core_choice: string
-  /** 何を冒すほど何が得られるか（版 2 で追加） */
-  risk_return: string
+  /** 何を冒すほど何が得られるか（版 2〜4。版 5 からは悩みどころにまとめたので、古い案だけが持つ） */
+  risk_return?: string | null
   core_loop: string
   fun_core: string
   keyword_mechanics: string

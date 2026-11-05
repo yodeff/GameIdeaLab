@@ -106,14 +106,43 @@ describe('parseModels', () => {
       ]
     }
     expect(parseModels(json)).toEqual([
-      { id: 'gpt-6.1-sol', label: 'gpt-6.1-sol' },
-      { id: 'gpt-6-luna', label: 'GPT-6 Luna' }
+      { id: 'gpt-6.1-sol', label: 'gpt-6.1-sol', description: null, reasoningLevels: [], defaultReasoning: null },
+      { id: 'gpt-6-luna', label: 'GPT-6 Luna', description: null, reasoningLevels: [], defaultReasoning: null }
     ])
   })
 
   it('API キーの一覧（data・id）からは対話のモデルだけ', () => {
     expect(parseModels({ data: [{ id: 'gpt-6.1-sol' }, { id: 'text-embedding-9' }, { id: 'whisper-2' }] })).toEqual([
-      { id: 'gpt-6.1-sol', label: 'gpt-6.1-sol' }
+      { id: 'gpt-6.1-sol', label: 'gpt-6.1-sol', description: null, reasoningLevels: [], defaultReasoning: null }
     ])
+  })
+})
+
+describe('考える深さ', () => {
+  it('モデルの説明・既定・選べる深さを読み、low〜high だけを選択肢にする', () => {
+    const json = {
+      models: [
+        {
+          slug: 'gpt-6.1-sol',
+          visibility: 'list',
+          display_name: 'GPT-6.1-Sol',
+          description: 'Latest workhorse model.',
+          default_reasoning_level: 'low',
+          supported_reasoning_levels: [{ effort: 'low' }, { effort: 'medium' }, { effort: 'high' }, { effort: 'xhigh' }, { effort: 'ultra' }]
+        }
+      ]
+    }
+    expect(parseModels(json)).toEqual([
+      { id: 'gpt-6.1-sol', label: 'GPT-6.1-Sol', description: 'Latest workhorse model.', reasoningLevels: ['low', 'medium', 'high'], defaultReasoning: 'low' }
+    ])
+  })
+
+  it('指定したときだけ reasoning.effort を送る', async () => {
+    const seen: { body?: unknown } = {}
+    const fetchFn = fetchReturning(() => new Response(sse(okEvents('{}'))), seen)
+    await collect(streamResponses(fetchFn, {}, { ...req, reasoningEffort: 'low' }, new AbortController().signal))
+    expect(seen.body).toMatchObject({ reasoning: { effort: 'low' } })
+    await collect(streamResponses(fetchFn, {}, req, new AbortController().signal))
+    expect(seen.body).not.toHaveProperty('reasoning')
   })
 })

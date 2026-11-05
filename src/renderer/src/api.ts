@@ -33,7 +33,7 @@ function createBrowserApi(): GameIdeaLabApi {
   return {
     ...(mockAiEnabled ? createMockAi() : createUnavailableAi()),
     ...createBrowserIdeaApi(),
-    getAppInfo: async () => ({ name: 'Game Idea Lab', version: 'browser', platform: 'browser' }),
+    getAppInfo: async () => ({ name: 'Game Idea Lab', version: 'browser', platform: 'browser', notice: null }),
     loadWorkspace: async () => parseWorkspace(readJson(KEY.workspace)),
     saveWorkspace: async (workspace) => {
       if (!parseWorkspace(workspace)) throw new Error('不正な入力: 作業状態')

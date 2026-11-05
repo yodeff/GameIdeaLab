@@ -15,7 +15,7 @@ import { fakeEncryptor } from './secrets'
 export function scriptedClient(chunks: string[], opts: { fail?: Error; delayMs?: number } = {}) {
   const requests: ModelRequest[] = []
   const client: IdeaModelClient = {
-    listModels: async () => [{ id: 'gpt-6.1-sol', label: 'gpt-6.1-sol' }],
+    listModels: async () => [{ id: 'gpt-6.1-sol', label: 'gpt-6.1-sol', description: null, reasoningLevels: [], defaultReasoning: null }],
     async *stream(req, signal) {
       requests.push(req)
       for (const chunk of chunks) {
@@ -30,6 +30,39 @@ export function scriptedClient(chunks: string[], opts: { fail?: Error; delayMs?:
     }
   }
   return { client, requests }
+}
+
+export type ScriptedReply = { chunks: string[]; fail?: Error; delayMs?: number }
+
+/**
+ * 依頼ごとに返事を変えられる偽のモデル。reply(依頼, 何回目) が返事を決める。
+ * 同時に走っている依頼の数の最大を記録する
+ */
+export function perRequestClient(reply: (req: ModelRequest, n: number) => ScriptedReply) {
+  const requests: ModelRequest[] = []
+  let active = 0
+  const stats = { maxConcurrent: 0 }
+  const client: IdeaModelClient = {
+    listModels: async () => [],
+    async *stream(req, signal) {
+      const n = requests.push(req) - 1
+      const r = reply(req, n)
+      active++
+      stats.maxConcurrent = Math.max(stats.maxConcurrent, active)
+      try {
+        const { AiError } = await import('../../src/main/ai/errors')
+        for (const chunk of r.chunks) {
+          await new Promise((res) => setTimeout(res, r.delayMs ?? 5))
+          if (signal.aborted) throw new AiError('cancelled')
+          yield chunk
+        }
+        if (r.fail) throw r.fail
+      } finally {
+        active--
+      }
+    }
+  }
+  return { client, requests, stats }
 }
 
 export function setupMain(client: IdeaModelClient) {
@@ -60,7 +93,7 @@ export function setupMain(client: IdeaModelClient) {
   const savedFiles: { name: string; content: string }[] = []
   const handlers = createHandlers({
     db,
-    appInfo: () => ({ name: 'test', version: '0.0.0', platform: 'test' }),
+    appInfo: () => ({ name: 'test', version: '0.0.0', platform: 'test', notice: null }),
     secrets,
     auth,
     apiKeys: new ApiKeyStore(secrets),

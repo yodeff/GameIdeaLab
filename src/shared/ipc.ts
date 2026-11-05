@@ -46,6 +46,8 @@ export type AppInfo = {
   name: string
   version: string
   platform: string
+  /** 起動時に知らせること（壊れた保存データを直したときなど）。無ければ null */
+  notice: string | null
 }
 
 export type AuthStatus = {
@@ -59,7 +61,13 @@ export type AuthStatus = {
   encryptionAvailable: boolean
 }
 
-export type ModelOption = { id: string; label: string }
+export type ModelOption = {
+  id: string
+  label: string
+  description: string | null
+  reasoningLevels: ('low' | 'medium' | 'high')[]
+  defaultReasoning: string | null
+}
 
 export type AiEvent =
   | {

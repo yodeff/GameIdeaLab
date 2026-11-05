@@ -1,7 +1,7 @@
 // アイデアの全項目・メモ・操作（design/03 §1・§3）。モーダルと保存済み画面の右側で共用（T-22）
 import { useEffect, useRef, useState } from 'react'
 import { formatCombination } from '@core/export'
-import { FIELD_LABELS, MEMO_MAX, OPTIONAL_FIELDS, REQUIRED_FIELDS, type IdeaRecord } from '@core/idea'
+import { DISPLAY_FIELDS, FIELD_LABELS, MEMO_MAX, type IdeaRecord } from '@core/idea'
 import { useIdeaActions } from '../app/useIdeaActions'
 import { DeriveMenu } from './DeriveMenu'
 import { CopyIcon, StarIcon } from './icons'
@@ -13,7 +13,7 @@ export function IdeaFields({ idea }: { idea: IdeaRecord }) {
   const body = idea.body
   return (
     <dl className="idea-fields">
-      {[...REQUIRED_FIELDS, ...OPTIONAL_FIELDS].map((f) =>
+      {DISPLAY_FIELDS.map((f) =>
         body[f] ? (
           <div key={f}>
             <dt>{FIELD_LABELS[f]}</dt>

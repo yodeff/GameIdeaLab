@@ -1,18 +1,18 @@
-import { join } from 'node:path'
-import type { DatabaseSync } from 'node:sqlite'
 import { randomUUID } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
-import { basename } from 'node:path'
+import { basename, join } from 'node:path'
+import type { DatabaseSync } from 'node:sqlite'
 import { app, BrowserWindow, dialog, ipcMain, safeStorage, screen, shell } from 'electron'
-import type { WindowBounds } from '@core/settings'
+import type { Settings, WindowBounds } from '@core/settings'
 import { AI_EVENT_CHANNEL, type AiEvent } from '@shared/ipc'
 import { ApiKeyStore, apiKeyClient, chatGptClient, clientFor } from './ai/connection'
 import { GenerationJobs } from './ai/jobs'
 import { ChatGptAuth } from './auth/chatgptAuth'
+import { runModelBench } from './benchModels'
 import { runIdeaEvaluation } from './evalIdeas'
 import { createHandlers } from './ipc/handlers'
 import { SecretStore } from './secrets/secretStore'
-import { backupIfDue, getSettings, openDatabase, updateSettings } from './storage'
+import { backupIfDue, getSettings, isHealthy, openDatabase, openDatabaseReadOnly, recoverDatabase, updateSettings } from './storage'
 
 const DEFAULT_SIZE = { width: 1280, height: 820 }
 
@@ -71,26 +71,76 @@ function createWindow(database: DatabaseSync): void {
   }
 }
 
+/** 開発用の道具（評価・速さの計測）として起動したか。本物の DB には書かない（LEARNINGS L-20） */
+const devTool = !app.isPackaged && (process.argv.includes('--eval-ideas') || process.argv.includes('--bench-models'))
+
+/** 起動時に知らせること（壊れた DB を直したときなど） */
+let startupNotice: string | null = null
+
+const dbPath = () => join(app.getPath('userData'), 'game-idea-lab.sqlite')
+
 function openStorage(): DatabaseSync {
-  const dir = app.getPath('userData')
-  const database = openDatabase(join(dir, 'game-idea-lab.sqlite'))
+  const path = dbPath()
+  if (!isHealthy(path)) {
+    const report = recoverDatabase(path, new Date())
+    console.error('DB が壊れていたので脇へ移して作り直した', report)
+    startupNotice = `保存データの一部が壊れていたため、新しく作り直しました（設定 ${report.settings} 件、案 ${report.ideas} 件を引き継ぎ。壊れたファイルは消さずに残しています）。`
+  }
+  const database = openDatabase(path)
   try {
-    backupIfDue(database, join(dir, 'backups'), new Date())
+    backupIfDue(database, join(app.getPath('userData'), 'backups'), new Date())
   } catch (e) {
     console.error('控えを作れなかった', e) // 控えの失敗で起動を止めない
   }
   return database
 }
 
-void app.whenReady().then(() => {
-  const database = openStorage()
-  db = database
+/** 開発用の道具は設定だけを読み取り専用で読み、DB は閉じる */
+function readSettingsOnce(): Settings {
+  const ro = openDatabaseReadOnly(dbPath())
+  try {
+    return getSettings(ro)
+  } finally {
+    ro.close()
+  }
+}
+
+// 同じ DB を 2 つのアプリが同時に使わないように、2 つ目の起動は 1 つ目の窓を前に出して終わる
+if (!devTool && !app.requestSingleInstanceLock()) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    const win = BrowserWindow.getAllWindows()[0]
+    if (win) {
+      if (win.isMinimized()) win.restore()
+      win.focus()
+    }
+  })
+  void app.whenReady().then(start)
+}
+
+function start(): void {
   const fetchFn = globalThis.fetch.bind(globalThis)
   const openExternal = (url: string) => shell.openExternal(url)
   const secrets = new SecretStore(join(app.getPath('userData'), 'secrets'), safeStorage)
   const auth = new ChatGptAuth({ store: secrets, fetch: fetchFn, openExternal })
   const apiKeys = new ApiKeyStore(secrets)
   const connections = { chatgpt: chatGptClient(auth, fetchFn), apiKey: apiKeyClient(apiKeys, fetchFn) }
+
+  // 開発時だけ: モデルごとの速さ・生成の質の評価。ウィンドウを出さず、本物の DB にも書かずに終わる
+  if (devTool) {
+    const settings = readSettingsOnce()
+    const client = clientFor(connections, settings.aiConnection)
+    const projectDir = process.cwd()
+    const task = process.argv.includes('--bench-models')
+      ? runModelBench({ projectDir, client, settings, log: console.log }).then((file) => console.log(`計測の結果: ${file}`))
+      : runIdeaEvaluation({ projectDir, client, settings, log: console.log }).then((file) => console.log(`評価の結果: ${file}`))
+    void task.catch((e: unknown) => console.error('失敗した', e)).finally(() => app.quit())
+    return
+  }
+
+  const database = openStorage()
+  db = database
   const client = () => clientFor(connections, getSettings(database).aiConnection)
   const emit = (event: AiEvent) => {
     for (const w of BrowserWindow.getAllWindows()) w.webContents.send(AI_EVENT_CHANNEL, event)
@@ -105,7 +155,7 @@ void app.whenReady().then(() => {
   })
   const handlers = createHandlers({
     db: database,
-    appInfo: () => ({ name: app.getName(), version: app.getVersion(), platform: process.platform }),
+    appInfo: () => ({ name: app.getName(), version: app.getVersion(), platform: process.platform, notice: startupNotice }),
     secrets,
     auth,
     apiKeys,
@@ -129,20 +179,11 @@ void app.whenReady().then(() => {
     ipcMain.handle(channel, (_event, ...args: unknown[]) => handler(...args))
   }
 
-  // 開発時だけ: 生成の質の評価（npm run eval:ideas）。ウィンドウを出さずに終わる
-  if (!app.isPackaged && process.argv.includes('--eval-ideas')) {
-    void runIdeaEvaluation({ projectDir: process.cwd(), client: client(), settings: getSettings(database), log: console.log })
-      .then((file) => console.log(`評価の結果: ${file}`))
-      .catch((e: unknown) => console.error('評価に失敗した', e))
-      .finally(() => app.quit())
-    return
-  }
-
   createWindow(database)
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow(database)
   })
-})
+}
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit()

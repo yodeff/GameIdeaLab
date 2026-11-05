@@ -9,6 +9,8 @@ export type ModelRequest = {
   instructions: string
   input: string
   textFormat: unknown
+  /** 考える深さ。無ければ送らない（モデルの既定） */
+  reasoningEffort?: 'low' | 'medium' | 'high'
 }
 
 type SseMessage = { event: string | null; data: string }
@@ -77,6 +79,7 @@ export async function* streamResponses(
         instructions: req.instructions,
         input: [{ role: 'user', content: [{ type: 'input_text', text: req.input }] }],
         text: { format: req.textFormat },
+        ...(req.reasoningEffort ? { reasoning: { effort: req.reasoningEffort } } : {}),
         store: false,
         stream: true
       }),
@@ -121,7 +124,24 @@ export async function* streamResponses(
   if (!completed) throw signal.aborted ? new AiError('cancelled') : new AiError('incomplete', 'ストリームが途中で切れた')
 }
 
-export type ModelInfo = { id: string; label: string }
+export type ModelInfo = {
+  id: string
+  label: string
+  description: string | null
+  /** 選べる考える深さ（low・medium・high のうちモデルが受け付けるもの）。分からなければ空 */
+  reasoningLevels: ('low' | 'medium' | 'high')[]
+  defaultReasoning: string | null
+}
+
+const LEVELS = ['low', 'medium', 'high'] as const
+type PlanModel = {
+  slug: string
+  visibility?: string
+  display_name?: string
+  description?: string
+  default_reasoning_level?: string
+  supported_reasoning_levels?: { effort?: string }[]
+}
 
 /** モデル一覧。プラン利用は {models:[{slug, visibility}]}、API キーは {data:[{id}]}（LEARNINGS L-5） */
 export function parseModels(json: unknown): ModelInfo[] {
@@ -129,15 +149,21 @@ export function parseModels(json: unknown): ModelInfo[] {
   const record = json as { models?: unknown; data?: unknown }
   if (Array.isArray(record.models)) {
     return record.models
-      .filter((m): m is { slug: string; visibility?: string; display_name?: string } => typeof m?.slug === 'string')
+      .filter((m): m is PlanModel => typeof m?.slug === 'string')
       .filter((m) => m.visibility === undefined || m.visibility === 'list')
-      .map((m) => ({ id: m.slug, label: m.display_name ?? m.slug }))
+      .map((m) => ({
+        id: m.slug,
+        label: m.display_name ?? m.slug,
+        description: typeof m.description === 'string' ? m.description : null,
+        reasoningLevels: LEVELS.filter((l) => m.supported_reasoning_levels?.some((s) => s.effort === l)),
+        defaultReasoning: typeof m.default_reasoning_level === 'string' ? m.default_reasoning_level : null
+      }))
   }
   if (Array.isArray(record.data)) {
     return record.data
       .filter((m): m is { id: string } => typeof m?.id === 'string')
       .filter((m) => /^(gpt-|o\d)/.test(m.id))
-      .map((m) => ({ id: m.id, label: m.id }))
+      .map((m): ModelInfo => ({ id: m.id, label: m.id, description: null, reasoningLevels: [], defaultReasoning: null }))
       .sort((a, b) => b.id.localeCompare(a.id))
   }
   return []

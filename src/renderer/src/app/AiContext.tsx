@@ -22,6 +22,8 @@ type AiState = {
   /** 新しい生成を始める前の結果。1 案も届かずに終わったら戻す */
   previous: Pick<AiState, 'results' | 'resultCombination' | 'resultAt'> | null
   error: AiErrorInfo | null
+  /** 頼んだ数より少なく終わったときの知らせ */
+  shortfall: { requested: number; received: number } | null
   models: ModelOption[] | null
   modelsError: AiErrorInfo | null
   planNoticeOpen: boolean
@@ -47,6 +49,7 @@ const initial: AiState = {
   resultAt: null,
   previous: null,
   error: null,
+  shortfall: null,
   models: null,
   modelsError: null,
   planNoticeOpen: false
@@ -94,11 +97,12 @@ function reducer(state: AiState, action: Action): AiState {
         const job: Job = { id: e.jobId, combination: e.combination, total: e.total, received: 0, parentId: e.parentId, startedAt: Date.now() }
         // 新しい生成なら前の結果を入れ替える。派生なら足す
         return e.parentId
-          ? { ...state, job, error: null }
+          ? { ...state, job, error: null, shortfall: null }
           : {
               ...state,
               job,
               error: null,
+              shortfall: null,
               previous: { results: state.results, resultCombination: state.resultCombination, resultAt: state.resultAt },
               results: [],
               resultCombination: e.combination,
@@ -109,7 +113,10 @@ function reducer(state: AiState, action: Action): AiState {
       if (e.type === 'idea') {
         return { ...state, job: { ...state.job, received: state.job.received + 1 }, results: insertResult(state.results, e.idea) }
       }
-      if (e.type === 'done') return { ...state, job: null, previous: null }
+      if (e.type === 'done') {
+        const short = e.received < state.job.total ? { requested: state.job.total, received: e.received } : null
+        return { ...state, job: null, previous: null, shortfall: short }
+      }
       // 1 案も届かずに終わったら、直前の結果を表示し続ける
       const restore = e.received === 0 && state.results.length === 0 && state.previous ? state.previous : {}
       return { ...state, ...restore, job: null, previous: null, error: e.error }

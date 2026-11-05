@@ -31,12 +31,13 @@ function sample(direction: GameIdeaBody['direction'], c: Combination, n: number)
     direction,
     title: `${c.keyword1}と${c.keyword2}の${direction}案 ${n}`,
     problem: `${c.genre}で${c.keyword1}を扱うと、置くだけの作業になりやすい。`,
+    catch_copy: `${c.keyword1}で${c.keyword2}を制せ。`,
     concept: `${c.keyword1}が${c.keyword2}を通じて資源になる${c.genre}。`,
-    overview: '（偽の AI の出力です）プレイヤーは限られた資源をやりくりし、キーワードがルールに効く場面を選び取る。',
+    scene: `画面の左に${c.keyword1}が 5 つ並ぶ。プレイヤーが 1 つを右へ動かすと、${c.keyword2}のゲージが 3 目盛り伸びる。`,
+    screen: '（偽の AI の出力です）真上から見た盤面。左に手札、右に得点のゲージが見える。',
     player_actions: '配置する・交換する・待つ、の 3 つから毎ターン 1 つを選ぶ。',
     goal: '30 ターン以内に目標の数値に届かせる。',
     core_choice: '今すぐ交換して確実に得るか、待って倍にするか。',
-    risk_return: '待つほど得点は増えるが、盤面が埋まると全部を失う。',
     core_loop: '状況を読む → 行動を選ぶ → 結果で次の選択肢が変わる。',
     fun_core: '短期の得と長期の得のどちらを取るかの判断。',
     keyword_mechanics: `${c.keyword1}が量、${c.keyword2}が速さを決める。`,
@@ -80,7 +81,7 @@ export function createMockAi(): AiApi {
             title: body.title,
             concept: body.concept,
             combination,
-            bodyText: [body.title, body.concept, body.overview].join(' '),
+            bodyText: [body.title, body.concept, body.scene].join(' '),
             body,
             direction: d,
             memo: '',
@@ -128,7 +129,13 @@ export function createMockAi(): AiApi {
       status = { ...status, apiKey: { configured: false, last4: null } }
       return status
     },
-    listModels: async () => ({ ok: true, value: [{ id: 'gpt-6.1-sol', label: 'gpt-6.1-sol' }, { id: 'gpt-6-luna', label: 'gpt-6-luna' }] }),
+    listModels: async () => ({
+      ok: true,
+      value: [
+        { id: 'gpt-6.1-sol', label: 'GPT-6.1-Sol', description: 'Latest workhorse model.', reasoningLevels: ['low', 'medium', 'high'], defaultReasoning: 'low' },
+        { id: 'gpt-6-luna', label: 'GPT-6-Luna', description: 'Small and fast.', reasoningLevels: ['low', 'medium'], defaultReasoning: 'low' }
+      ]
+    }),
     generate: async (req) => run(req.combination, directionsFor(req.count), {}),
     derive: async (req) => {
       const parent = ideas.find((i) => i.id === req.parentId)

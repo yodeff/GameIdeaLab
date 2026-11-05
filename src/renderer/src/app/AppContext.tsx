@@ -48,8 +48,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
   stateRef.current = state
 
   useEffect(() => {
-    void Promise.all([api.loadWorkspace(), api.getSettings()]).then(([workspace, settings]) => {
+    void Promise.all([api.loadWorkspace(), api.getSettings(), api.getAppInfo()]).then(([workspace, settings, info]) => {
       dispatch({ type: 'loaded', workspace: workspace ?? freshWorkspace(), settings })
+      if (info.notice) dispatch({ type: 'toast', message: info.notice })
     })
   }, [])
 

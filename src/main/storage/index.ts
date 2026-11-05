@@ -1,5 +1,6 @@
 export { BACKUP_INTERVAL_MS, BACKUP_KEEP, backupIfDue, listBackups } from './backup'
-export { openDatabase } from './db'
+export type { RecoveryReport } from './db'
+export { isHealthy, openDatabase, openDatabaseReadOnly, recoverDatabase } from './db'
 export { LATEST_VERSION, migrate } from './migrations'
 export type { AiIdeaInput } from './repositories'
 export {

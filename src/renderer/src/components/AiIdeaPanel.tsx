@@ -7,6 +7,7 @@ import { isConnected, useAi, useAiActions } from '../app/AiContext'
 import { useActions, useAppState } from '../app/AppContext'
 import { IdeaDetailModal } from './IdeaDetail'
 import { IdeaCard, SkeletonCard } from './IdeaCard'
+import { ModelSelect, ReasoningSelect } from './ModelControls'
 
 const FIDELITY_LABELS: Record<Fidelity, string> = { strict: '厳格', standard: '標準', free: '自由' }
 
@@ -161,6 +162,14 @@ export function AiIdeaPanel() {
             ))}
           </select>
         </label>
+        <label className="hint">
+          モデル
+          <ModelSelect />
+        </label>
+        <label className="hint">
+          考える深さ
+          <ReasoningSelect />
+        </label>
         <span className="spacer" />
         {running && (
           <span className="hint generating">
@@ -175,6 +184,13 @@ export function AiIdeaPanel() {
 
       {ai.error && !(ai.error.kind === 'not-signed-in' && !connected) && <ErrorBanner error={ai.error} />}
       {!connected && ai.auth !== null && !running && ai.results.length === 0 && <ConnectPrompt />}
+      {ai.shortfall && (
+        <div className="error-banner is-info" role="status">
+          <span>
+            {ai.shortfall.requested} 案のうち {ai.shortfall.received} 案が届きました。残りの {ai.shortfall.requested - ai.shortfall.received} 案は、やり直しても読める形で届きませんでした。
+          </span>
+        </div>
+      )}
 
       {(ai.results.length > 0 || running) && (
         <>

@@ -29,7 +29,7 @@ describe('ideaToMarkdown（design/04 §5.2）', () => {
   it('AI の案を決まった見出しで出し、メモが空なら節を出さない', () => {
     const md = ideaToMarkdown(base)
     expect(md.startsWith('# 寄生自販機チェーン\n\n- キーワード: 自動販売機 / 寄生\n- ジャンル: 経営シミュレーション\n')).toBe(true)
-    for (const h of ['## 課題', '## コンセプト', '## 概要', '## プレイヤーの操作', '## 目的', '## プレイヤーの選択', '## リスクとリターン', '## コアループ', '## 面白さの核', '## キーワードとゲーム性']) {
+    for (const h of ['## キャッチコピー', '## ひとことで', '## プレイの一場面', '## 画面', '## 操作', '## 目的', '## 遊びの流れ', '## 悩みどころ', '## 気持ちいい瞬間', '## キーワードの使い方', '## ねらい']) {
       expect(md).toContain(h)
     }
     expect(md).not.toContain('## メモ')
@@ -51,5 +51,14 @@ describe('ideaToMarkdown（design/04 §5.2）', () => {
 
   it('複数の案は --- でつなぐ', () => {
     expect(ideasToMarkdown([base, { ...base, title: '二つ目' }]).split('\n---\n')).toHaveLength(2)
+  })
+})
+
+describe('見出しの順（版 5）', () => {
+  it('まず画面が思い浮かぶ順に並べ、ねらいは後ろ。古い案のリスクとリターンも出す', () => {
+    const md = ideaToMarkdown({ ...base, body: { ...sampleIdea(), risk_return: '欲張ると潰れる' } })
+    const order = ['## キャッチコピー', '## ひとことで', '## プレイの一場面', '## 悩みどころ', '## 欲張ると', '## 気持ちいい瞬間', '## ねらい'].map((h) => md.indexOf(h))
+    expect(order.every((i) => i >= 0)).toBe(true)
+    expect([...order].sort((a, b) => a - b)).toEqual(order)
   })
 })

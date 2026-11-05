@@ -35,11 +35,12 @@ export function IdeaCard({ idea, parentTitle, busy, onDetail }: Props) {
         </button>
       </header>
       <h3>{idea.title}</h3>
+      {idea.body?.catch_copy && <p className="idea-catch">{idea.body.catch_copy}</p>}
       <p className="idea-concept">{idea.concept}</p>
       {idea.body && (
         <p className="idea-loop">
-          <span className="hint">{idea.body.risk_return ? 'リスクとリターン' : 'コアループ'}</span>
-          {idea.body.risk_return || idea.body.core_loop}
+          <span className="hint">{idea.body.scene ? 'プレイの一場面' : idea.body.risk_return ? 'リスクとリターン' : '遊びの流れ'}</span>
+          {idea.body.scene || idea.body.risk_return || idea.body.core_loop}
         </p>
       )}
       <footer className="idea-card-actions">

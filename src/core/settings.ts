@@ -4,6 +4,9 @@ import { isInt, isOneOf, isRecord, isString } from './validate'
 export type Theme = 'system' | 'light' | 'dark'
 export type Fidelity = 'strict' | 'standard' | 'free'
 export type AiConnection = 'chatgpt' | 'apiKey'
+/** 考える深さ。default はモデルの既定に任せる（送らない） */
+export type AiReasoning = 'default' | 'low' | 'medium' | 'high'
+export const AI_REASONING_LEVELS: readonly AiReasoning[] = ['default', 'low', 'medium', 'high']
 export type WindowBounds = { x: number; y: number; width: number; height: number }
 
 export type Settings = {
@@ -12,6 +15,7 @@ export type Settings = {
   aiModel: string | null
   aiCount: number
   aiFidelity: Fidelity
+  aiReasoning: AiReasoning
   theme: Theme
   planNoticeShown: boolean
   windowBounds: WindowBounds | null
@@ -22,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   aiModel: null,
   aiCount: 3,
   aiFidelity: 'standard',
+  aiReasoning: 'default',
   theme: 'system',
   planNoticeShown: false,
   windowBounds: null
@@ -44,6 +49,7 @@ const CHECKS: Checker = {
   aiModel: (v): v is string | null => v === null || isString(v, 100, 1),
   aiCount: (v): v is number => isInt(v, AI_COUNT_MIN, AI_COUNT_MAX),
   aiFidelity: (v): v is Fidelity => isOneOf(v, ['strict', 'standard', 'free'] as const),
+  aiReasoning: (v): v is AiReasoning => isOneOf(v, AI_REASONING_LEVELS),
   theme: (v): v is Theme => isOneOf(v, ['system', 'light', 'dark'] as const),
   planNoticeShown: (v): v is boolean => typeof v === 'boolean',
   windowBounds: (v): v is WindowBounds | null => v === null || isBounds(v)

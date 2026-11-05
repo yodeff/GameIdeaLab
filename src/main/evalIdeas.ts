@@ -109,13 +109,13 @@ export function metrics(ideas: readonly IdeaRecord[]): string[] {
     const avg = (f: (i: IdeaRecord) => number) => (list.length ? Math.round(list.reduce((a, i) => a + f(i), 0) / list.length) : 0)
     const count = (re: RegExp) => list.filter((i) => re.test(i.body ? bodyToText(i.body) : '')).length
     const optional = list.reduce((n, i) => n + [i.body?.features, i.body?.challenges, i.body?.prototype].filter(Boolean).length, 0)
-    return `| ${direction} | ${list.length} | ${avg((i) => (i.body ? bodyToText(i.body).length : 0))} | ${avg((i) => i.concept.length)} | ${list.filter((i) => i.concept.length > 40).length} | ${count(/ではなく|代わりに/)} | ${count(/そのもの/)} | ${count(/できないか|られないか/)} | ${optional} |`
+    return `| ${direction} | ${list.length} | ${avg((i) => (i.body ? bodyToText(i.body).length : 0))} | ${avg((i) => i.concept.length)} | ${list.filter((i) => i.concept.length > 40).length} | ${count(/ではなく|代わりに/)} | ${count(/そのもの/)} | ${count(/できないか|られないか/)} | ${optional} | ${count(/ほどけ|ほどく|解き放|溶けて|緊張がたま|駆け引きが生まれ/)} | ${count(/リスク|リターン|コアループ|メカニクス|ゲーム性/)} |`
   })
   return [
     '## 機械的な数値',
     '',
-    '| 方向 | 案 | 平均字数 | コンセプトの平均字数 | コンセプト 40 字超 | 「ではなく・代わりに」 | 「そのもの」 | 「できないか」 | 任意の項目の数 |',
-    '|---|---|---|---|---|---|---|---|---|',
+    '| 方向 | 案 | 平均字数 | コンセプトの平均字数 | コンセプト 40 字超 | 「ではなく・代わりに」 | 「そのもの」 | 「できないか」 | 任意の項目の数 | 比喩（ほどける・解き放つなど）を含む案 | 企画の用語を含む案 |',
+    '|---|---|---|---|---|---|---|---|---|---|---|',
     ...rows
   ]
 }
