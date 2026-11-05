@@ -5,6 +5,7 @@ import { combinationOf, type Combination } from '@core/draw'
 import type { DeriveOperation, IdeaRecord } from '@core/idea'
 import type { AiEvent, AuthStatus, ModelOption } from '@shared/ipc'
 import { api } from '../api'
+import { sounds } from '../sound/player'
 import { useActions, useAppState } from './AppContext'
 
 export const MANAGE_USAGE_URL = 'https://chatgpt.com/settings/usage'
@@ -158,7 +159,15 @@ export function AiProvider({ children }: { children: ReactNode }) {
   const { settings } = app
   const combination = combinationOf(app.workspace.draw)
 
-  useEffect(() => api.onAiEvent((event) => dispatch({ type: 'event', event })), [])
+  useEffect(
+    () =>
+      api.onAiEvent((event) => {
+        dispatch({ type: 'event', event })
+        // 案が出そろったら鳴らす（1 案も届かなかったとき・中止・誤りでは鳴らさない）
+        if (event.type === 'done' && event.received > 0) sounds.complete()
+      }),
+    []
+  )
   useEffect(() => {
     void api.getAuthStatus().then((auth) => dispatch({ type: 'auth', auth }))
     void api.latestGeneration().then((ideas) => dispatch({ type: 'restored', ideas }))

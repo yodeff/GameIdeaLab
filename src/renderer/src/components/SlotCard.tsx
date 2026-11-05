@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { KeywordDictionary } from '@core/dictionary'
 import { MANUAL_MAX_LENGTH, type Slot } from '@core/draw'
+import { rollCues } from '../sound/player'
 import { CategoryPicker } from './CategoryPicker'
 import { CloseIcon, EditIcon, LockIcon, RerollIcon, UnlockIcon } from './icons'
 
@@ -27,12 +28,19 @@ const ROLL_TICK_MS = 45
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-/** 抽選の演出。結果は先に決まっていて、見た目だけ辞書の語を入れ替える。連打したら演出を飛ばす */
+/** 抽選の演出。結果は先に決まっていて、見た目だけ辞書の語を入れ替える。連打したら演出を飛ばす。音は rollCues に任せる */
 function useRollingText(value: string, roll: number, index: number, dictionary: KeywordDictionary): [string, boolean] {
   const [shown, setShown] = useState(value)
   const [rolling, setRolling] = useState(false)
   const lastRoll = useRef(roll)
   const timers = useRef<{ tick?: ReturnType<typeof setInterval>; stop?: ReturnType<typeof setTimeout> }>({})
+  /** このスロットが回っている間 true（音の数を合わせるため） */
+  const sounding = useRef(false)
+  const endSound = (stopped: boolean) => {
+    if (!sounding.current) return
+    sounding.current = false
+    rollCues.end(stopped)
+  }
 
   useEffect(() => {
     const clear = () => {
@@ -50,10 +58,14 @@ function useRollingText(value: string, roll: number, index: number, dictionary: 
     if (wasRolling || reducedMotion()) {
       setRolling(false)
       setShown(value)
+      if (wasRolling) endSound(true)
+      else rollCues.instant()
       return
     }
     const words = dictionary.categories.flatMap((c) => c.words)
     setRolling(true)
+    sounding.current = true
+    rollCues.start()
     timers.current.tick = setInterval(() => {
       setShown(words[Math.floor(Math.random() * words.length)] ?? value)
     }, ROLL_TICK_MS)
@@ -62,6 +74,7 @@ function useRollingText(value: string, roll: number, index: number, dictionary: 
       timers.current = {}
       setRolling(false)
       setShown(value)
+      endSound(true)
     }, ROLL_BASE_MS + index * ROLL_STAGGER_MS)
     return undefined
   }, [roll, value, index, dictionary])
@@ -70,6 +83,7 @@ function useRollingText(value: string, roll: number, index: number, dictionary: 
     () => () => {
       clearInterval(timers.current.tick)
       clearTimeout(timers.current.stop)
+      endSound(false) // 回っている途中で外されたら、音の数だけ戻す
     },
     []
   )

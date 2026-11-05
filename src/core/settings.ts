@@ -17,6 +17,10 @@ export type Settings = {
   aiFidelity: Fidelity
   aiReasoning: AiReasoning
   theme: Theme
+  /** 効果音（抽選・決定・案が出そろったとき） */
+  sound: boolean
+  /** 効果音の音量 0〜100 */
+  soundVolume: number
   planNoticeShown: boolean
   windowBounds: WindowBounds | null
 }
@@ -28,6 +32,8 @@ export const DEFAULT_SETTINGS: Settings = {
   aiFidelity: 'standard',
   aiReasoning: 'default',
   theme: 'system',
+  sound: true,
+  soundVolume: 60,
   planNoticeShown: false,
   windowBounds: null
 }
@@ -51,6 +57,8 @@ const CHECKS: Checker = {
   aiFidelity: (v): v is Fidelity => isOneOf(v, ['strict', 'standard', 'free'] as const),
   aiReasoning: (v): v is AiReasoning => isOneOf(v, AI_REASONING_LEVELS),
   theme: (v): v is Theme => isOneOf(v, ['system', 'light', 'dark'] as const),
+  sound: (v): v is boolean => typeof v === 'boolean',
+  soundVolume: (v): v is number => isInt(v, 0, 100),
   planNoticeShown: (v): v is boolean => typeof v === 'boolean',
   windowBounds: (v): v is WindowBounds | null => v === null || isBounds(v)
 }

@@ -185,6 +185,8 @@ CREATE TABLE workspace (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER N
 | `ai.fidelity` | `"standard"` | `"standard"` |
 | `ui.theme` | `"system"` / `"light"` / `"dark"` | `"system"` |
 | `ui.planNoticeShown` | `true` | `false` |
+| `sound` | `true` / `false`（効果音。design/03 §2.7） | `true` |
+| `soundVolume` | `0`〜`100` | `60` |
 | `window.bounds` | `{x,y,width,height}` | 1280×820 |
 
 トークン・API キー・`client_id`・ホスト ID は DB に入れない（`safeStorage`、アーキテクチャ §6）。

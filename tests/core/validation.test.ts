@@ -71,10 +71,10 @@ describe('作業状態の版 1 → 版 2', () => {
 
 describe('parseSettingsPatch', () => {
   it('正しい部分的な設定を返す', () => {
-    expect(parseSettingsPatch({ aiCount: 10, theme: 'light', aiModel: null })).toEqual({ aiCount: 10, theme: 'light', aiModel: null })
+    expect(parseSettingsPatch({ aiCount: 10, theme: 'light', aiModel: null, sound: false, soundVolume: 0 })).toEqual({ aiCount: 10, theme: 'light', aiModel: null, sound: false, soundVolume: 0 })
   })
 
-  it.each([{ aiCount: 0 }, { aiCount: 11 }, { theme: 'blue' }, { unknownKey: 1 }, { windowBounds: { x: 0 } }, null])(
+  it.each([{ aiCount: 0 }, { aiCount: 11 }, { theme: 'blue' }, { sound: 1 }, { soundVolume: 101 }, { soundVolume: 2.5 }, { unknownKey: 1 }, { windowBounds: { x: 0 } }, null])(
     '不正な値 %j は null',
     (patch) => {
       expect(parseSettingsPatch(patch)).toBeNull()

@@ -5,6 +5,7 @@ import { useAi, useAiActions } from '../app/AiContext'
 import { useActions, useAppState } from '../app/AppContext'
 import { PlanBadge } from '../components/AiIdeaPanel'
 import { ModelSelect, ReasoningSelect } from '../components/ModelControls'
+import { sounds } from '../sound/player'
 
 const THEMES: { value: Theme; label: string }[] = [
   { value: 'system', label: 'システムに合わせる' },
@@ -208,6 +209,35 @@ export function SettingsScreen() {
                 {f.label}
               </label>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="settings-section">
+        <h3>音</h3>
+        <div className="form-grid">
+          <span>効果音</span>
+          <label className="row">
+            <input type="checkbox" checked={settings.sound} onChange={(e) => void app.updateSettings({ sound: e.target.checked })} />
+            抽選中・組み合わせが決まったとき・案が出そろったときに鳴らす
+          </label>
+
+          <label htmlFor="sound-volume">音量</label>
+          <div className="row">
+            <input
+              id="sound-volume"
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={settings.soundVolume}
+              disabled={!settings.sound}
+              onChange={(e) => void app.updateSettings({ soundVolume: Number(e.target.value) })}
+            />
+            <span className="hint sound-volume-value">{settings.soundVolume}</span>
+            <button type="button" className="ghost" disabled={!settings.sound} onClick={() => sounds.complete()}>
+              試しに鳴らす
+            </button>
           </div>
         </div>
       </section>

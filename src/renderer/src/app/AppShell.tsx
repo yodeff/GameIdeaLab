@@ -5,6 +5,7 @@ import { PlanNoticeModal } from '../components/PlanNoticeModal'
 import { MainScreen } from '../screens/MainScreen'
 import { SavedScreen } from '../screens/SavedScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
+import { configureSound } from '../sound/player'
 import { useActions, useAppState } from './AppContext'
 
 const TOAST_MS = 2400
@@ -17,6 +18,12 @@ function useTheme() {
     if (settings.theme === 'system') delete root.dataset['theme']
     else root.dataset['theme'] = settings.theme
   }, [settings.theme])
+}
+
+/** 効果音の設定を音の部品に渡す */
+function useSoundSettings() {
+  const { settings } = useAppState()
+  useEffect(() => configureSound(settings.sound, settings.soundVolume / 100), [settings.sound, settings.soundVolume])
 }
 
 function Toast() {
@@ -38,6 +45,7 @@ export function AppShell() {
   const { workspace, screen } = useAppState()
   const actions = useActions()
   useTheme()
+  useSoundSettings()
 
   return (
     <div className="app">
