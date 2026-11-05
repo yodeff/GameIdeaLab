@@ -1,0 +1,39 @@
+# デスクトップ版のインストーラーを作り、GitHub Releases に「下書き」で置く（DECISIONS/0006）。
+# 公開するかどうかは、メンテナーが Releases の画面で下書きを確かめてから決める。
+# 使い方: package.json の version と同じタグ（例: v0.1.0）を push する
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: タグと package.json の version がそろっているか
+        shell: bash
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "v${version}" != "${GITHUB_REF_NAME}" ]; then
+            echo "タグ ${GITHUB_REF_NAME} と package.json の version ${version} が違います" >&2
+            exit 1
+          fi
+      - run: npm ci
+      - run: npm run check
+      - run: npm run dist:win
+      - name: 下書きの Release に置く
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" release/GameIdeaLab-Setup-*.exe \
+            --draft --title "Game Idea Lab ${GITHUB_REF_NAME}" --generate-notes

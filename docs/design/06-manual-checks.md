@@ -96,4 +96,4 @@
 | 2 | 配る形のアプリ（`release/win-unpacked`）が起動し、保存・強制終了を経ても DB が健全 | PASS | `GIL_APP_EXE` を付けて `npm run smoke:restart` を 4 回。画面の写しも確かめた |
 | 3 | お試し版（`out/web`）が静的なファイルとして動く | PASS | 抽選・A モード・設定。B モードは「デスクトップ版の機能です」。`?mock-ai` を付けても偽の AI は動かない |
 | 4 | ライセンスの表記が入る | PASS | `LICENSE`・`THIRD_PARTY_NOTICES.md`（react・react-dom・scheduler）。Electron・Chromium の表記は electron-builder が入れる |
-| 5 | インストーラーで実際にインストールして起動する | NOT_RUN | メンテナーの PC にインストールすることになるので、メンテナーが行う |
+| 5 | インストーラーで実際にインストールして起動する | PASS | メンテナーが入れて起動できた（2026-11-05） |

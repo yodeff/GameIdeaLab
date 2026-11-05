@@ -5,7 +5,7 @@
 
 ## 現在地
 
-- 段階: **STEP 8 全体の確認と配布の準備**。T-24（全体の確認）・T-25（配布の形）は済み。次は T-26（公開の準備）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
+- 段階: **STEP 8 全体の確認と配布の準備**。T-24・T-25 は済み。T-26（公開の準備）はリポジトリの中でできることを済ませ、残りは GitHub での作業（[RELEASING.md](RELEASING.md)）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
 - 動くもの: 可変のスロットの抽選（ジャンル 0〜3・キーワード 1〜5、カテゴリの複数選択・固定・個別の引き直し・手動入力・キー操作・演出・組み合わせのコピー）、A モード（下書きの自動保存・保存）、テーマの切り替え、作業状態と設定の SQLite への保存、起動時の控え。辞書は 10 カテゴリ 1,025 語・ジャンル 20。
 - STEP 6 で足したもの: Sign in with ChatGPT（loopback・PKCE・ID トークンの検査・更新・失効、トークンは safeStorage で暗号化）、API キーの接続（明示的に選んだときだけ）、B モード（1〜10 案・忠実度・届いた案から順に表示・中止・誤りの区別と操作）、派生生成（5 つの操作）、設定画面の AI の欄、初回のプラン利用の説明、生成の質の評価の道具（`npm run eval:ideas`）。
 - STEP 7 で足したもの: 保存済み・履歴の一覧（検索・ジャンル・お気に入りで絞り込み、複数選択でまとめてコピー・Markdown で保存）、詳細（全項目・メモ・保存/履歴に戻す・削除・派生）、カードの☆・保存・コピー、Markdown のファイル保存（保存ダイアログ）、再起動後に前回の生成を B モードに戻す。
@@ -13,7 +13,8 @@
 - メンテナーの要望で足したもの（2 回目）: スロットを可変にした。ジャンルを左に置き、ジャンル 0〜3・キーワード 1〜5 を足し外しできる（[DECISIONS/0005](DECISIONS/0005-variable-slots.md)）。
 - 効果音: 抽選中のガラガラ・スロットが止まる音・当たりの鐘・案が出そろったジングル（audio-studio で生成。設定でオン・オフと音量。design/03 §2.7）。
 - 配布（DECISIONS/0006）: Windows のインストーラー（`npm run dist:win`、NSIS・署名なし）と、ブラウザのお試し版（`npm run build:web`、AI なし）。アイコン・ライセンスの表記（`THIRD_PARTY_NOTICES.md`）も入る。
-- まだ無いもの: 公開の準備（T-26）。
+- 公開の準備（T-26）: `SECURITY.md`、README の使い方と英語の要約、`package.json` の `repository`、ワークフロー（CI・インストーラーを Releases に下書きで置く・お試し版を Pages に手で置く）、手順書 [RELEASING.md](RELEASING.md)。リポジトリ名は `yodeff/game-idea-lab` と仮に置いた。
+- まだ無いもの: GitHub のリポジトリ（公開はメンテナーが決める）。
 - 手で確かめた結果: [design/06-manual-checks.md](design/06-manual-checks.md)。
 - STEP 1 の結果: [design/01-requirements.md](design/01-requirements.md)（未確定事項 D-1〜D-23 と初期値の案、リスク R-1〜R-12）。
 - STEP 2 の結果: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)（公式仕様の確認）と [DECISIONS/0003](DECISIONS/0003-ai-connection.md)（AI の接続。採用）。
@@ -24,7 +25,7 @@
 ## 次にやること
 
 1. メンテナー: `npm run dev` で一通り触って感想をもらう（Q-7・Q-8）。
-2. STEP 8: T-26（公開の準備: `SECURITY.md`・英語の README の要約・`package.json` の `repository`・CI・お試し版とインストーラーの置き場所）。デモ動画は別のセッションで作っている（`private/promo/`）。
+2. 公開するとき（メンテナー）: GitHub に `yodeff/game-idea-lab` を作って push し、Pages と脆弱性の報告の窓口を有効にして、タグを付ける（[RELEASING.md](RELEASING.md)）。デモ動画は別のセッションで作っている（`private/promo/`）。
 
 ## メンテナーの判断待ち
 
@@ -66,6 +67,7 @@
 
 ## 最近の変更
 
+- 2026-11-05: STEP 8 T-26（公開の準備のうちリポジトリの中でできること）。メンテナーがインストーラーで入れて起動できた。
 - 2026-11-05: STEP 8 T-25（配布の形）。インストーラー（electron-builder・NSIS）、ブラウザのお試し版、アイコン、ライセンスの表記を足した（DECISIONS/0006）。確かめの道具を本物のデータに向けてしまう事故があり、すぐ片付けて安全装置を足した（L-24）。
 - 2026-11-05: STEP 8 T-24（全体の確認）。再起動の確かめの道具 `npm run smoke:restart` と、開発時の保存先の切り替え `GIL_USER_DATA` を足した。狭いスロットの名前の表示を直した。本物の DB の破損を見つけ、写しから戻した（L-23）。
 - 2026-11-05: 効果音を足した（抽選中・決定・案が出そろったとき）。設定に「音」。テスト 174 件。音は audio-studio で作った福引き風のものにした（候補は `private/sound-candidates/index.html` で聴き比べられる）。

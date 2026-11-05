@@ -1,0 +1,42 @@
+# ブラウザのお試し版（AI なし。DECISIONS/0006）を GitHub Pages に置く。
+# 自動では動かない。メンテナーが Actions の画面から手で走らせる（リポジトリの設定で Pages の Source を「GitHub Actions」にしておく）
+name: Pages (trial)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build:web
+        env:
+          # お試し版の「デスクトップ版を入手する」の行き先
+          VITE_DOWNLOAD_URL: https://github.com/${{ github.repository }}/releases/latest
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: out/web
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
