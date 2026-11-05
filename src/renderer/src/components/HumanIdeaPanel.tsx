@@ -6,6 +6,7 @@ import { IDEA_TITLE_MAX } from '@core/idea'
 import { DRAFT_BODY_MAX, emptyDraft } from '@core/workspace'
 import { api } from '../api'
 import { useActions, useAppState } from '../app/AppContext'
+import { primaryMod, shortcut } from '../keys'
 
 
 export function HumanIdeaPanel() {
@@ -72,7 +73,7 @@ export function HumanIdeaPanel() {
         maxLength={DRAFT_BODY_MAX}
         onChange={(e) => update({ body: e.target.value })}
         onKeyDown={(e) => {
-          if (e.ctrlKey && e.key.toLowerCase() === 's') {
+          if (primaryMod(e) && e.key.toLowerCase() === 's') {
             e.preventDefault()
             void save()
           }
@@ -90,7 +91,7 @@ export function HumanIdeaPanel() {
           消す
         </button>
         <button type="button" className="primary" onClick={() => void save()} disabled={!draft.body.trim() || saving}>
-          保存（Ctrl+S）
+          保存（{shortcut('S')}）
         </button>
       </footer>
     </section>

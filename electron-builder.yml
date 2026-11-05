@@ -1,5 +1,6 @@
-# 配布の形（DECISIONS/0006）。Windows のインストーラー（NSIS、利用者ごと、署名なし）。
-# 作り方: npm run dist:win → release/ にできる
+# 配布の形（DECISIONS/0006・0007）。Windows のインストーラー（NSIS、利用者ごと、署名なし）と、
+# Mac のディスクイメージ（dmg、Apple Silicon と Intel、アドホック署名・公証なし）。
+# 作り方: Windows は npm run dist:win、Mac は Mac の上で npm run dist:mac（GitHub Actions の Release でも作る）→ release/ にできる
 appId: io.github.yodeff.gameidealab
 productName: Game Idea Lab
 copyright: Copyright © 2026 yodeff
@@ -33,4 +34,17 @@ nsis:
   # アンインストールしても保存データ（%APPDATA%\Game Idea Lab）は消さない
   deleteAppDataOnUninstall: false
   artifactName: GameIdeaLab-Setup-${version}.${ext}
+mac:
+  target:
+    - target: dmg
+      arch: [arm64, x64]
+  icon: build/icon.png
+  category: public.app-category.productivity
+  # 証明書は使わず、アドホック署名だけをする。署名が無いと Apple Silicon の Mac で「壊れている」と出て開けない。
+  # アドホック署名では hardenedRuntime を切る（入れたままだと起動に失敗する。electron-builder の説明より）
+  identity: '-'
+  hardenedRuntime: false
+  notarize: false
+dmg:
+  artifactName: GameIdeaLab-${version}-${arch}.${ext}
 publish: null

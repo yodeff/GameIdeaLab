@@ -10,7 +10,12 @@ permissions:
 
 jobs:
   check:
-    runs-on: windows-latest
+    # Windows と Mac の両方で検査とビルドを通す（DECISIONS/0007）
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

@@ -14,7 +14,8 @@
 - 効果音: 抽選中のガラガラ・スロットが止まる音・当たりの鐘・案が出そろったジングル（audio-studio で生成。設定でオン・オフと音量。design/03 §2.7）。
 - 配布（DECISIONS/0006）: Windows のインストーラー（`npm run dist:win`、NSIS・署名なし）と、ブラウザのお試し版（`npm run build:web`、AI なし）。アイコン・ライセンスの表記（`THIRD_PARTY_NOTICES.md`）も入る。
 - 公開の準備（T-26）: `SECURITY.md`、README の使い方と英語の要約、`package.json` の `repository`、ワークフロー（CI・インストーラーを Releases に下書きで置く・お試し版を Pages に手で置く）、手順書 [RELEASING.md](RELEASING.md)。リポジトリ名は `yodeff/game-idea-lab` と仮に置いた。
-- まだ無いもの: GitHub のリポジトリ（公開はメンテナーが決める）。
+- Mac: コードと配布の設定は済み（DECISIONS/0007）。dmg は GitHub Actions の Mac の環境で作る。実機での確かめはまだ。
+- まだ無いもの: GitHub のリポジトリ（公開はメンテナーが決める）、Mac の実機での確かめ。
 - 手で確かめた結果: [design/06-manual-checks.md](design/06-manual-checks.md)。
 - STEP 1 の結果: [design/01-requirements.md](design/01-requirements.md)（未確定事項 D-1〜D-23 と初期値の案、リスク R-1〜R-12）。
 - STEP 2 の結果: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)（公式仕様の確認）と [DECISIONS/0003](DECISIONS/0003-ai-connection.md)（AI の接続。採用）。
@@ -46,6 +47,7 @@
 | Q-5 | 派生生成の最小の形（固定の 4 操作 + 自由指示、元の案は上書きしない）を MVP に入れる | 2026-11-05 |
 | Q-6 | STEP 3 の前に Sign in with ChatGPT の試作をする | 2026-11-05 |
 | Q-9 | 指示文は版 4 まで調整して評価した（メンテナー「版 4 を評価」）。案の項目に「課題」「プレイヤーの選択」「リスクとリターン」を足した | 2026-11-05 |
+| Q-15 | Mac にも配る。dmg（Apple Silicon・Intel）、アドホック署名・公証なし、GitHub Actions の Mac の環境で作る。メンテナー「Mac にも対応できますか？」「GitHub Actions で作れますか？」「はい」（DECISIONS/0007） | 2026-11-05 |
 | Q-14 | 配布の形は「デスクトップ版（NSIS のインストーラー、署名なし）＋ブラウザのお試し版（AI なし）」。メンテナー「アプリ＋お試し版」（DECISIONS/0006） | 2026-11-05 |
 | Q-13 | 本物の DB が壊れていた件（LEARNINGS L-23）は、版を上げる前の写し（`before-v2`、案 29 件）から戻す。壊れたファイルは `….broken-20261105-171716` として残す | 2026-11-05 |
 | Q-12 | 公開の前の確認のうち、Sign in with ChatGPT の配布の条件（U-7）は特に無く、効果音の生成モデルの利用条件（U-8）からも外れていない。メンテナーの判断で閉じる | 2026-11-05 |
@@ -67,6 +69,7 @@
 
 ## 最近の変更
 
+- 2026-11-05: Mac への対応（DECISIONS/0007）。キー操作を Mac では ⌘ に、Mac の編集メニュー、ヒラギノ、electron-builder の Mac の設定、Release と CI に Mac を足した。Mac の実機ではまだ確かめていない。
 - 2026-11-05: STEP 8 T-26（公開の準備のうちリポジトリの中でできること）。メンテナーがインストーラーで入れて起動できた。
 - 2026-11-05: STEP 8 T-25（配布の形）。インストーラー（electron-builder・NSIS）、ブラウザのお試し版、アイコン、ライセンスの表記を足した（DECISIONS/0006）。確かめの道具を本物のデータに向けてしまう事故があり、すぐ片付けて安全装置を足した（L-24）。
 - 2026-11-05: STEP 8 T-24（全体の確認）。再起動の確かめの道具 `npm run smoke:restart` と、開発時の保存先の切り替え `GIL_USER_DATA` を足した。狭いスロットの名前の表示を直した。本物の DB の破損を見つけ、写しから戻した（L-23）。

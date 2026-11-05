@@ -97,3 +97,15 @@
 | 3 | お試し版（`out/web`）が静的なファイルとして動く | PASS | 抽選・A モード・設定。B モードは「デスクトップ版の機能です」。`?mock-ai` を付けても偽の AI は動かない |
 | 4 | ライセンスの表記が入る | PASS | `LICENSE`・`THIRD_PARTY_NOTICES.md`（react・react-dom・scheduler）。Electron・Chromium の表記は electron-builder が入れる |
 | 5 | インストーラーで実際にインストールして起動する | PASS | メンテナーが入れて起動できた（2026-11-05） |
+
+## Mac（DECISIONS/0007、2026-11-05）
+
+確かめ方: 手元に Mac が無いので、キー操作の判定と表示はテスト（`tests/renderer/keys.test.ts`）、Windows での表示が変わらないことはブラウザで確かめた。dmg は GitHub Actions の Mac の環境で作る（リポジトリができてから）。
+
+| # | 項目 | 結果 | メモ |
+|---|---|---|---|
+| 1 | Windows の表示とキー操作が変わらない | PASS | 「保存（Ctrl+S）」「Ctrl+Shift+C」 |
+| 2 | electron-builder の Mac の設定が読み込める | PASS | Windows では「Mac の上でだけ作れる」で止まる（設定の誤りは出ない） |
+| 3 | GitHub Actions の Mac の環境で検査・dmg の作成が通る | NOT_RUN | リポジトリを作って push した後 |
+| 4 | Mac の実機で起動・抽選・⌘ のキー操作・入力欄の ⌘C／⌘V・サインイン・生成・保存・効果音 | NOT_RUN | Mac を持っている人に頼む |
+| 5 | 初回の警告から「このまま開く」で開ける（アドホック署名） | NOT_RUN | 同上 |

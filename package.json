@@ -25,6 +25,7 @@
     "build": "electron-vite build",
     "build:web": "vite build --config vite.renderer.config.ts && node -e \"for (const f of ['LICENSE', 'THIRD_PARTY_NOTICES.md']) require('node:fs').copyFileSync(f, 'out/web/' + f)\"",
     "dist:win": "npm run build && node tools/gen-notices.mjs && node tools/dist-win.mjs",
+    "dist:mac": "npm run build && node tools/gen-notices.mjs && electron-builder --mac dmg",
     "preview": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "test": "vitest run",

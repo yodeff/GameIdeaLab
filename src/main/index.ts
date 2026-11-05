@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { writeFileSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import type { DatabaseSync } from 'node:sqlite'
-import { app, BrowserWindow, dialog, ipcMain, safeStorage, screen, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, safeStorage, screen, shell } from 'electron'
 import type { Settings, WindowBounds } from '@core/settings'
 import { AI_EVENT_CHANNEL, type AiEvent } from '@shared/ipc'
 import { ApiKeyStore, apiKeyClient, chatGptClient, clientFor } from './ai/connection'
@@ -182,6 +182,11 @@ function start(): void {
   })
   for (const [channel, handler] of Object.entries(handlers)) {
     ipcMain.handle(channel, (_event, ...args: unknown[]) => handler(...args))
+  }
+
+  // Mac はメニューの「編集」が無いと、入力欄で ⌘C・⌘V などが効かない。標準のメニューだけを置く
+  if (process.platform === 'darwin') {
+    Menu.setApplicationMenu(Menu.buildFromTemplate([{ role: 'appMenu' }, { role: 'editMenu' }, { role: 'windowMenu' }]))
   }
 
   createWindow(database)

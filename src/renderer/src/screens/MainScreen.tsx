@@ -8,6 +8,7 @@ import { AiIdeaPanel } from '../components/AiIdeaPanel'
 import { HumanIdeaPanel } from '../components/HumanIdeaPanel'
 import { CopyIcon, PlusIcon, SpinIcon } from '../components/icons'
 import { SlotCard } from '../components/SlotCard'
+import { primaryMod, shortcut } from '../keys'
 
 const KIND_LABELS: Record<SlotKind, string> = { genre: 'ジャンル', keyword: 'キーワード' }
 
@@ -24,12 +25,12 @@ function useShortcuts() {
   const { workspace } = useAppState()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.ctrlKey && e.key === 'Enter' && workspace.mode === 'ai') {
+      if (primaryMod(e) && e.key === 'Enter' && workspace.mode === 'ai') {
         e.preventDefault()
         void ai.generate()
         return
       }
-      if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
+      if (primaryMod(e) && e.shiftKey && e.code === 'KeyC') {
         e.preventDefault()
         actions.copyCombination()
         return
@@ -73,7 +74,7 @@ export function MainScreen() {
             回す
             <kbd>Space</kbd>
           </button>
-          <button type="button" className="ghost" onClick={actions.copyCombination} title="Ctrl+Shift+C">
+          <button type="button" className="ghost" onClick={actions.copyCombination} title={shortcut('C', true)}>
             <CopyIcon />
             組み合わせをコピー
           </button>

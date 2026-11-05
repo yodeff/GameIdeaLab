@@ -1,6 +1,6 @@
 # Game Idea Lab
 
-ランダムなキーワード（1〜5 つ）とゲームジャンル（0〜3 つ）を組み合わせて、自分では思いつかなかったゲームアイデアの種を見つけるデスクトップアプリ。
+ランダムなキーワード（1〜5 つ）とゲームジャンル（0〜3 つ）を組み合わせて、自分では思いつかなかったゲームアイデアの種を見つけるデスクトップアプリ（Windows・Mac）。
 
 - **A モード**: 組み合わせを見て、自分で発想する（AI 不要・オフライン）
 - **B モード**: AI に複数のゲーム案を出させて比べる
@@ -19,24 +19,32 @@
 
 保存データは `%APPDATA%\Game Idea Lab` にあります。アンインストールしても消えません。
 
+### デスクトップ版（Mac・試験的）
+
+1. [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) から、Apple Silicon の Mac は `GameIdeaLab-<版>-arm64.dmg`、Intel の Mac は `GameIdeaLab-<版>-x64.dmg` を入手し、アプリを「アプリケーション」へ入れます。
+2. 公証をしていないため、初回は「開発元を確認できない」と出て開けません。「システム設定 → プライバシーとセキュリティ」の下の方にある「このまま開く」を押してください。
+3. 保存データは `~/Library/Application Support/Game Idea Lab` にあります。
+
+Mac 版はまだ実機での確かめが済んでいません。動かないところがあれば Issue で知らせてください。
+
 ### ブラウザのお試し版
 
 [https://yodeff.github.io/game-idea-lab/](https://yodeff.github.io/game-idea-lab/)（公開後）で、インストールせずに、抽選・自分で考える（A モード）・保存・Markdown での書き出しを試せます。AI の機能はデスクトップ版だけです。データはそのブラウザの中にだけ保存されます。
 
 ## English
 
-**Game Idea Lab** is a Windows desktop app that helps you find seeds for game ideas. It randomly combines 1–5 keywords with 0–3 game genres (Japanese word lists).
+**Game Idea Lab** is a desktop app for Windows and macOS (macOS builds are experimental) that helps you find seeds for game ideas. It randomly combines 1–5 keywords with 0–3 game genres (Japanese word lists).
 
 - **Mode A**: look at the combination and come up with an idea yourself (offline, no AI).
 - **Mode B**: let AI (Sign in with ChatGPT, or your own OpenAI API key) suggest several game ideas and compare them.
 - Save ideas, mark favorites, and export them as Markdown.
 - A browser trial version (no AI) is also available.
 
-The UI and word lists are in Japanese. Download the installer from [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) (unsigned, so Windows SmartScreen will warn you on first run). See [SECURITY.md](SECURITY.md) for what the app stores and how to report vulnerabilities.
+The UI and word lists are in Japanese. Download the installer from [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) (not signed or notarized, so Windows SmartScreen / macOS Gatekeeper will warn you on first run; on macOS use System Settings → Privacy & Security → Open Anyway). See [SECURITY.md](SECURITY.md) for what the app stores and how to report vulnerabilities.
 
 ## 開発
 
-必要なもの: Node.js 24.12 以上、Windows
+必要なもの: Node.js 24.12 以上、Windows または Mac
 
 ```bash
 npm install
@@ -50,6 +58,7 @@ npm run dev
 | `npm run check` | 型検査・テスト・公開前の検査 |
 | `npm run build` | `out/` にビルド |
 | `npm run dist:win` | Windows のインストーラーを `release/` に作る（NSIS・署名なし。DECISIONS/0006） |
+| `npm run dist:mac` | Mac の dmg を `release/` に作る（Mac の上でだけ。アドホック署名。DECISIONS/0007） |
 | `npm run build:web` | ブラウザのお試し版（AI なし）を `out/web/` に作る。入手先のリンクは `VITE_DOWNLOAD_URL` で渡す |
 | `npm run smoke:restart` | 起動・操作・終了（強制終了を含む）を繰り返して DB の健全さを確かめる。一時フォルダの保存先を使う |
 | `npm run preview` | ビルドしたものを起動 |

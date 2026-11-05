@@ -10,6 +10,7 @@ import { IdeaCard, SkeletonCard } from './IdeaCard'
 import { ModelSelect, ReasoningSelect } from './ModelControls'
 import { isTrial } from '../api'
 import { DOWNLOAD_URL } from '../links'
+import { shortcut } from '../keys'
 
 const FIDELITY_LABELS: Record<Fidelity, string> = { strict: '厳格', standard: '標準', free: '自由' }
 
@@ -168,7 +169,7 @@ function AiIdeaPanelBody() {
           className="primary generate-button"
           disabled={running || ai.auth === null}
           onClick={() => void actions.generate()}
-          title="Ctrl+Enter"
+          title={shortcut('Enter')}
         >
           ✦ {settings.aiCount} 案を生成
         </button>
