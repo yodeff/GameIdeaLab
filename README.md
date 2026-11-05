@@ -24,6 +24,7 @@ npm run dev
 | `npm run check` | 型検査・テスト・公開前の検査 |
 | `npm run build` | `out/` にビルド |
 | `npm run preview` | ビルドしたものを起動 |
+| `npm run eval:ideas` | 生成の質の評価（開発用。アプリでサインインした接続で 10 通りを生成し `private/eval/` に書く） |
 
 ## 文書
 

@@ -482,3 +482,349 @@ kbd {
     transition: none !important;
   }
 }
+
+/* --- 共通の小物 ----------------------------------------------------------- */
+
+select,
+.text-input {
+  font: inherit;
+  color: inherit;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 8px;
+}
+
+.text-input {
+  min-width: 320px;
+}
+
+button.link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.row.end {
+  justify-content: flex-end;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.popover {
+  position: absolute;
+  z-index: 20;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+/* --- B モード ------------------------------------------------------------- */
+
+.ai-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.ai-toolbar label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.generate-button {
+  padding: 8px 18px;
+}
+
+.generating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.connect-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+}
+
+.connect-prompt p {
+  margin: 0;
+}
+
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+}
+
+.error-banner.is-info {
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+.result-caption,
+.empty {
+  margin: 0;
+}
+
+.idea-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1200px) {
+  .idea-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.idea-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  animation: card-in 0.25s ease-out;
+}
+
+.idea-card.is-derived {
+  border-style: dashed;
+}
+
+.idea-card h3 {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.idea-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 20px;
+}
+
+.idea-concept {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.idea-loop {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.6;
+  font-size: 13px;
+}
+
+.idea-card-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 6px;
+  padding-top: 6px;
+}
+
+.derived-from {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.badge.direction-変化球 {
+  background: color-mix(in srgb, #e39b2d 18%, transparent);
+  color: #c47f12;
+}
+
+.badge.direction-実験的 {
+  background: color-mix(in srgb, #2fb38a 18%, transparent);
+  color: #1f9a74;
+}
+
+.idea-card.is-skeleton {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+  background: var(--surface-2);
+}
+
+.skeleton-line.short {
+  width: 30%;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.derive-menu {
+  position: relative;
+}
+
+.derive-popover {
+  bottom: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  display: flex;
+  flex-direction: column;
+}
+
+.menu-item {
+  justify-content: flex-start;
+  width: 100%;
+}
+
+.derive-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 6px;
+}
+
+.derive-form textarea {
+  min-height: 80px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+/* --- モーダル ------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(10, 12, 18, 0.45);
+}
+
+.modal {
+  width: min(760px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 20px 24px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.modal.small {
+  width: min(480px, 100%);
+}
+
+.modal h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.idea-fields {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.idea-fields dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.idea-fields dd {
+  margin: 2px 0 0;
+  line-height: 1.7;
+}
+
+.idea-text {
+  white-space: pre-wrap;
+  line-height: 1.7;
+}
+
+/* --- 設定 ------------------------------------------------------------------ */
+
+.settings-section h4 {
+  margin: 14px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  align-items: center;
+  gap: 12px;
+}

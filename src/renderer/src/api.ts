@@ -5,6 +5,7 @@ import { parseHumanIdeaInput, type IdeaRecord } from '@core/idea'
 import { DEFAULT_SETTINGS, parseSettingsPatch, readSetting, SETTING_KEYS, type Settings } from '@core/settings'
 import { parseWorkspace } from '@core/workspace'
 import type { GameIdeaLabApi } from '@shared/ipc'
+import { createMockAi, createUnavailableAi, mockAiEnabled } from './mockAi'
 
 const KEY = { workspace: 'gil.workspace', settings: 'gil.settings', ideas: 'gil.ideas' } as const
 
@@ -29,6 +30,7 @@ function readSettings(): Settings {
 
 function createBrowserApi(): GameIdeaLabApi {
   return {
+    ...(mockAiEnabled ? createMockAi() : createUnavailableAi()),
     getAppInfo: async () => ({ name: 'Game Idea Lab', version: 'browser', platform: 'browser' }),
     loadWorkspace: async () => parseWorkspace(readJson(KEY.workspace)),
     saveWorkspace: async (workspace) => {

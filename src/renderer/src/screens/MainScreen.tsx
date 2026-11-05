@@ -1,8 +1,10 @@
 // メイン画面（design/03 §2）
 import { useEffect } from 'react'
 import { dictionaryFor, type SlotId } from '@core/draw'
+import { useAiActions } from '../app/AiContext'
 import { useActions, useAppState } from '../app/AppContext'
 import { dictionaries } from '../app/dictionaries'
+import { AiIdeaPanel } from '../components/AiIdeaPanel'
 import { HumanIdeaPanel } from '../components/HumanIdeaPanel'
 import { CopyIcon, SpinIcon } from '../components/icons'
 import { SlotCard } from '../components/SlotCard'
@@ -19,8 +21,15 @@ const isTyping = (target: EventTarget | null) =>
 /** キー操作（design/03 §2.5）。入力欄にいるときは抽選しない */
 function useShortcuts() {
   const actions = useActions()
+  const ai = useAiActions()
+  const { workspace } = useAppState()
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'Enter' && workspace.mode === 'ai') {
+        e.preventDefault()
+        void ai.generate()
+        return
+      }
       if (e.ctrlKey && e.shiftKey && e.code === 'KeyC') {
         e.preventDefault()
         actions.copyCombination()
@@ -40,7 +49,7 @@ function useShortcuts() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [actions])
+  }, [actions, ai, workspace.mode])
 }
 
 export function MainScreen() {
@@ -81,14 +90,7 @@ export function MainScreen() {
         </button>
       </div>
 
-      {workspace.mode === 'human' ? (
-        <HumanIdeaPanel />
-      ) : (
-        <section className="panel ai-panel-placeholder" aria-label="AI に考えさせる">
-          <h2>AI に考えさせる</h2>
-          <p className="hint">B モード（AI による生成）は次の段階（STEP 6）で使えるようになります。</p>
-        </section>
-      )}
+      {workspace.mode === 'human' ? <HumanIdeaPanel /> : <AiIdeaPanel />}
     </main>
   )
 }

@@ -1,6 +1,8 @@
 // 設定・作業状態・アイデアの読み書き。node:sqlite を直接触るのは src/main/storage だけ（DECISIONS/0004）。
 import type { DatabaseSync } from 'node:sqlite'
-import type { HumanIdeaInput, IdeaRecord } from '@core/idea'
+import { bodyToText, type GameIdeaBody, type HumanIdeaInput, type IdeaRecord } from '@core/idea'
+import type { Combination } from '@core/draw'
+import type { Fidelity } from '@core/settings'
 import { DEFAULT_SETTINGS, SETTING_KEYS, readSetting, type Settings } from '@core/settings'
 import { parseWorkspace, type Workspace } from '@core/workspace'
 
@@ -120,4 +122,58 @@ export function insertHumanIdea(db: DatabaseSync, input: HumanIdeaInput, id: str
   const record = getIdea(db, id)
   if (!record) throw new Error('保存した案を読み出せない')
   return record
+}
+
+export type AiIdeaInput = {
+  body: GameIdeaBody
+  combination: Combination
+  generationId: string
+  model: string
+  fidelity: Fidelity
+  parentId?: string
+  derivation?: string
+}
+
+/** AI の案を履歴（未保存）として追加する（D-17） */
+export function insertAiIdea(db: DatabaseSync, input: AiIdeaInput, id: string, now: string): IdeaRecord {
+  const { body, combination: c } = input
+  db.prepare(
+    `INSERT INTO ideas (id, created_at, updated_at, source, saved, title, concept, keyword1, keyword2, genre,
+       body_text, body_json, direction, parent_id, derivation, generation_id, model, fidelity)
+     VALUES (?, ?, ?, 'ai', 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(
+    id,
+    now,
+    now,
+    body.title,
+    body.concept,
+    c.keyword1,
+    c.keyword2,
+    c.genre,
+    bodyToText(body),
+    JSON.stringify(body),
+    body.direction,
+    input.parentId ?? null,
+    input.derivation ?? null,
+    input.generationId,
+    input.model,
+    input.fidelity
+  )
+  const record = getIdea(db, id)
+  if (!record) throw new Error('保存した案を読み出せない')
+  return record
+}
+
+export const HISTORY_KEEP = 200
+
+/** 保存していない案を新しい順に keep 件だけ残す（D-17）。消した件数を返す */
+export function pruneHistory(db: DatabaseSync, keep = HISTORY_KEEP): number {
+  const result = db
+    .prepare(
+      `DELETE FROM ideas WHERE saved = 0 AND id NOT IN (
+         SELECT id FROM ideas WHERE saved = 0 ORDER BY created_at DESC, rowid DESC LIMIT ?
+       )`
+    )
+    .run(keep)
+  return Number(result.changes)
 }

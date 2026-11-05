@@ -1,8 +1,15 @@
 import { join } from 'node:path'
 import type { DatabaseSync } from 'node:sqlite'
-import { app, BrowserWindow, ipcMain, screen, shell } from 'electron'
+import { randomUUID } from 'node:crypto'
+import { app, BrowserWindow, ipcMain, safeStorage, screen, shell } from 'electron'
 import type { WindowBounds } from '@core/settings'
+import { AI_EVENT_CHANNEL, type AiEvent } from '@shared/ipc'
+import { ApiKeyStore, apiKeyClient, chatGptClient, clientFor } from './ai/connection'
+import { GenerationJobs } from './ai/jobs'
+import { ChatGptAuth } from './auth/chatgptAuth'
+import { runIdeaEvaluation } from './evalIdeas'
 import { createHandlers } from './ipc/handlers'
+import { SecretStore } from './secrets/secretStore'
 import { backupIfDue, getSettings, openDatabase, updateSettings } from './storage'
 
 const DEFAULT_SIZE = { width: 1280, height: 820 }
@@ -76,12 +83,45 @@ function openStorage(): DatabaseSync {
 void app.whenReady().then(() => {
   const database = openStorage()
   db = database
+  const fetchFn = globalThis.fetch.bind(globalThis)
+  const openExternal = (url: string) => shell.openExternal(url)
+  const secrets = new SecretStore(join(app.getPath('userData'), 'secrets'), safeStorage)
+  const auth = new ChatGptAuth({ store: secrets, fetch: fetchFn, openExternal })
+  const apiKeys = new ApiKeyStore(secrets)
+  const connections = { chatgpt: chatGptClient(auth, fetchFn), apiKey: apiKeyClient(apiKeys, fetchFn) }
+  const client = () => clientFor(connections, getSettings(database).aiConnection)
+  const emit = (event: AiEvent) => {
+    for (const w of BrowserWindow.getAllWindows()) w.webContents.send(AI_EVENT_CHANNEL, event)
+  }
+  const jobs = new GenerationJobs({
+    db: database,
+    settings: () => getSettings(database),
+    client,
+    emit,
+    newId: randomUUID,
+    now: () => new Date()
+  })
   const handlers = createHandlers({
     db: database,
-    appInfo: () => ({ name: app.getName(), version: app.getVersion(), platform: process.platform })
+    appInfo: () => ({ name: app.getName(), version: app.getVersion(), platform: process.platform }),
+    secrets,
+    auth,
+    apiKeys,
+    jobs,
+    client,
+    openExternal
   })
   for (const [channel, handler] of Object.entries(handlers)) {
     ipcMain.handle(channel, (_event, ...args: unknown[]) => handler(...args))
+  }
+
+  // 開発時だけ: 生成の質の評価（npm run eval:ideas）。ウィンドウを出さずに終わる
+  if (!app.isPackaged && process.argv.includes('--eval-ideas')) {
+    void runIdeaEvaluation({ projectDir: process.cwd(), client: client(), settings: getSettings(database), log: console.log })
+      .then((file) => console.log(`評価の結果: ${file}`))
+      .catch((e: unknown) => console.error('評価に失敗した', e))
+      .finally(() => app.quit())
+    return
   }
 
   createWindow(database)

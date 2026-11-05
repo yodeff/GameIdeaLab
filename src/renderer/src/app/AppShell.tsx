@@ -1,6 +1,7 @@
 // ヘッダーと画面の切り替え（design/03 §1）
 import { useEffect } from 'react'
 import { BackIcon, GearIcon } from '../components/icons'
+import { PlanNoticeModal } from '../components/PlanNoticeModal'
 import { MainScreen } from '../screens/MainScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
 import { useActions, useAppState } from './AppContext'
@@ -79,6 +80,7 @@ export function AppShell() {
         </nav>
       </header>
       {screen === 'settings' ? <SettingsScreen /> : <MainScreen />}
+      <PlanNoticeModal />
       <Toast />
     </div>
   )

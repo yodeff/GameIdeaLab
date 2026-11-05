@@ -60,6 +60,7 @@ npm run dev:browser # 画面だけをブラウザで開く（preload なし。�
 npm run check      # 型検査 + テスト + 公開前の検査。変更を終える前に必ず通す
 npm run build      # out/ にビルド
 npm run preview    # ビルドしたものを起動
+npm run eval:ideas # 生成の質の評価（アプリでサインインした後。結果は private/eval/）
 ```
 
 ## 6. 作業を終えるとき（記録を更新する）

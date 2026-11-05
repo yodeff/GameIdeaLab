@@ -1,0 +1,15 @@
+{
+  "note": "生成の質の評価に使う組み合わせ（design/04 §6）。意味の近いもの 3、遠いもの 5、抽象語を含むもの 2。変えたら前の評価と比べられなくなる",
+  "combinations": [
+    { "kind": "近い", "keyword1": "冷蔵庫", "keyword2": "料理人", "genre": "経営シミュレーション" },
+    { "kind": "近い", "keyword1": "図書館", "keyword2": "探偵", "genre": "脱出ゲーム" },
+    { "kind": "近い", "keyword1": "種", "keyword2": "植物園", "genre": "育成ゲーム" },
+    { "kind": "遠い", "keyword1": "自動販売機", "keyword2": "寄生", "genre": "経営シミュレーション" },
+    { "kind": "遠い", "keyword1": "灯台", "keyword2": "早食い", "genre": "リズムゲーム" },
+    { "kind": "遠い", "keyword1": "手錠", "keyword2": "渡り鳥", "genre": "タワーディフェンス" },
+    { "kind": "遠い", "keyword1": "風鈴", "keyword2": "民主主義", "genre": "ローグライク" },
+    { "kind": "遠い", "keyword1": "消火器", "keyword2": "転生", "genre": "デッキ構築" },
+    { "kind": "抽象", "keyword1": "忘却", "keyword2": "地下鉄", "genre": "パズル" },
+    { "kind": "抽象", "keyword1": "真実", "keyword2": "雪だるま", "genre": "ステルス" }
+  ]
+}

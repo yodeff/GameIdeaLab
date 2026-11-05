@@ -20,7 +20,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test && npm run check:public",
-    "check:public": "node tools/check-public.mjs"
+    "check:public": "node tools/check-public.mjs",
+    "eval:ideas": "electron-vite build && electron . --eval-ideas"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
