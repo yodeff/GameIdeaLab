@@ -106,6 +106,6 @@
 |---|---|---|---|
 | 1 | Windows の表示とキー操作が変わらない | PASS | 「保存（Ctrl+S）」「Ctrl+Shift+C」 |
 | 2 | electron-builder の Mac の設定が読み込める | PASS | Windows では「Mac の上でだけ作れる」で止まる（設定の誤りは出ない） |
-| 3 | GitHub Actions の Mac の環境で検査・dmg の作成が通る | NOT_RUN | リポジトリを作って push した後 |
+| 3 | GitHub Actions の Mac の環境で検査・ビルドが通る | PASS | 2026-11-05 の最初の push の CI（Windows・Mac とも成功）。dmg の作成は最初のタグの Release で確かめる |
 | 4 | Mac の実機で起動・抽選・⌘ のキー操作・入力欄の ⌘C／⌘V・サインイン・生成・保存・効果音 | NOT_RUN | Mac を持っている人に頼む |
 | 5 | 初回の警告から「このまま開く」で開ける（アドホック署名） | NOT_RUN | 同上 |
