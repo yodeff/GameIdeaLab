@@ -20,6 +20,7 @@ npm run dev
 | コマンド | 内容 |
 |---|---|
 | `npm run dev` | 開発モードで起動（ホットリロード） |
+| `npm run dev:browser` | 画面だけをブラウザで開く（http://127.0.0.1:5180。保存は localStorage） |
 | `npm run check` | 型検査・テスト・公開前の検査 |
 | `npm run build` | `out/` にビルド |
 | `npm run preview` | ビルドしたものを起動 |

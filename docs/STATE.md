@@ -5,9 +5,10 @@
 
 ## 現在地
 
-- 段階: **STEP 4 タスク分解 完了** → 次は STEP 5（抽選と A モードの実装。T-01〜T-10）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
-- 動くもの: Electron の空の画面（3 つのスロットの枠だけ）。preload 経由の IPC、型検査、テスト、公開前の検査。
-- まだ無いもの: 抽選、A/B モード、AI 生成、保存、エクスポート。
+- 段階: **STEP 5 抽選と A モード 実装済み** → メンテナーの確認（辞書の抜き取り・触っての感想）待ち。次は STEP 6（AI 連携と B モード。T-11〜T-19）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
+- 動くもの: 3 スロットの抽選（カテゴリの複数選択・固定・個別の引き直し・手動入力・キー操作・演出・組み合わせのコピー）、A モード（下書きの自動保存・保存）、テーマの切り替え、作業状態と設定の SQLite への保存、起動時の控え。辞書は 10 カテゴリ 1,025 語・ジャンル 20。
+- まだ無いもの: B モード（AI 生成）、保存済みの一覧、Markdown 出力。
+- 手で確かめた結果: [design/06-manual-checks.md](design/06-manual-checks.md)。
 - STEP 1 の結果: [design/01-requirements.md](design/01-requirements.md)（未確定事項 D-1〜D-23 と初期値の案、リスク R-1〜R-12）。
 - STEP 2 の結果: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)（公式仕様の確認）と [DECISIONS/0003](DECISIONS/0003-ai-connection.md)（AI の接続。採用）。
 - STEP 4 の結果: [design/05-tasks.md](design/05-tasks.md)（T-01〜T-26、依存関係、メンテナーに手を借りるところ）。タスクの状態の正本はこの表。
@@ -16,14 +17,14 @@
 
 ## 次にやること
 
-1. STEP 5: T-01（core の構成）から始め、T-03（辞書づくり）を早めに並べて進める。辞書はメンテナーの抜き取りの確認が要る。
-2. STEP 5 の確認（T-10）の後に STEP 6 の画面に入る。AI の部品（T-11〜T-13）は STEP 5 と並べて進めてよい。
+1. メンテナー: `npm run dev` で触って感想をもらう。辞書（`resources/dictionaries/keywords.ja.json`）を抜き取りで眺めてもらう。
+2. STEP 6: AI の部品（T-11 core/idea・T-12 秘密の保管・T-13 サインイン）から始める。
 
 ## メンテナーの判断待ち
 
 | ID | 判断すること | 推奨 | 状態 |
 |---|---|---|---|
-| — | なし | — | — |
+| Q-7 | STEP 5 を触ってみての感想と、辞書（1,025 語）の抜き取りの確認 | — | 未回答 |
 
 ## 決まったこと
 
@@ -50,6 +51,7 @@
 
 ## 最近の変更
 
+- 2026-11-05: STEP 5 実装（T-01〜T-10）。テスト 55 件。画面だけをブラウザで開く `npm run dev:browser` を足した。
 - 2026-11-05: STEP 4 MVP のタスク分解（T-01〜T-26）。
 - 2026-11-05: STEP 3 設計（アーキテクチャ・画面・データと生成）。保存は `node:sqlite` に決めた。
 - 2026-11-05: STEP 2.5 Sign in with ChatGPT の試作（`spikes/siwc-probe.mjs`）。サインイン・プラン利用・3 通りの生成を確かめた。

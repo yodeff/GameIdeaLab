@@ -21,6 +21,9 @@
 | L-4 | 2026-11-05 | 仕様 | はい | Sign in with ChatGPT には OSS・ローカルアプリ向けの流れがあり、クライアントシークレットなしで利用者の ChatGPT プランから Responses API を呼べる。ただし `store: false`・`stream: true` が必須で、`temperature`・`max_output_tokens` は指定できない |
 | L-5 | 2026-11-05 | 仕様 | はい | Sign in with ChatGPT の OSS 向けの流れは事前の承認なしで動いた。JSON Schema の構造化出力も使える。ただし `/v1/models` は `{models:[{slug,...}]}` の形で、`response.completed` の `output` は空。出力はストリームの途中のイベントから組み立てる |
 | L-6 | 2026-11-05 | 技術 | はい | `node:sqlite` は Electron 45 と Node 24.12 の両方で WAL・`user_version`・`VACUUM INTO`・`backup()`・FTS5・JSON 関数が動く。控え・マイグレーション・全文検索まで追加の依存なしでできる |
+| L-7 | 2026-11-05 | 技術 | はい | `node:sqlite` の `DatabaseSync` は開いた後に例外が起きても自動では閉じない。Windows ではファイルを握ったままになるので、初期化の失敗時は `close()` してから投げ直す |
+| L-8 | 2026-11-05 | 進め方 | はい | 「カテゴリが均等か」のような確率のテストは、直近の語を避ける規則などほかの規則と混ぜずに、選ぶ関数そのものに対して書く |
+| L-9 | 2026-11-05 | 進め方 | はい | renderer の API に「preload が無いときは localStorage で動く代わり」を用意すると、画面だけをブラウザで開いて操作の確認を自動化できる（将来の Web 版の足がかりにもなる） |
 
 ---
 
@@ -61,3 +64,20 @@
 - 分かったこと: Electron 45（Node 24.22.2）と Node 24.12 で、`PRAGMA journal_mode=WAL`、`PRAGMA user_version`、`VACUUM INTO '<path>'`、`backup()`、FTS5 の仮想表、`json_extract`、日本語の `LIKE` が動いた（警告も出ない）。
 - 意味: 起動時の控え（`VACUUM INTO`）、スキーマの版の管理（`user_version`）、将来の全文検索（FTS5）まで追加の依存なしでできる。テストも Vitest（Node 24.12）でそのまま `:memory:` の DB を使える。
 - 反映: [DECISIONS/0004](DECISIONS/0004-storage-node-sqlite.md)。
+
+## L-7 `node:sqlite` は失敗しても DB を閉じない
+
+- 起きたこと: アプリより新しい版の DB を開くテストで、`openDatabase` がマイグレーションの段階で例外を出した後、テストの後片付けで一時フォルダを消せなかった（EPERM）。
+- 理由: `new DatabaseSync(path)` で開いた DB は、その後の処理で例外が起きても閉じられず、Windows ではファイルのロックが残る。
+- 対応: `openDatabase` で初期化を `try` で囲み、失敗したら `db.close()` してから投げ直す（`src/main/storage/db.ts`）。本番でも、DB を開けなかった後に控えから戻すなどの操作がファイルのロックで失敗するのを防ぐ。
+
+## L-8 確率のテストはほかの規則と混ぜない
+
+- 起きたこと: 「語数の違うカテゴリでも出方が半々」を `drawSlot` で 1 万回引いて確かめたら 33% になり失敗した。
+- 理由: `drawSlot` は直近の語と今の語を避ける（D-3）。1 語だけのカテゴリは 2 回続けて選べないので、規則どおりでも半々にならない。テストの前提が誤っていた。
+- 対応: 均等さは除外なしの `drawWord` に対して確かめ、直近の語を避けることは別のテストにした。
+
+## L-9 画面だけをブラウザで開ける形にしておく
+
+- 背景: Electron の画面は自動で操作して確かめにくい。
+- 対応: `src/renderer/src/api.ts` で、`window.gameIdeaLab`（preload）が無いときは localStorage に保存する代わりの実装を使うようにし、`npm run dev:browser`（`vite.renderer.config.ts`）で画面だけを開けるようにした。抽選・固定・カテゴリ・手動入力・下書きの復元・保存・テーマをブラウザで操作して確かめた（design/06）。IPC と SQLite のつながりは、ビルドしたアプリを Electron で起動して別に確かめた。

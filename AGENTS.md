@@ -56,6 +56,7 @@ Game Idea Lab は、ランダムなキーワード 2 つとゲームジャンル
 ```bash
 npm install
 npm run dev        # 開発（ホットリロード）
+npm run dev:browser # 画面だけをブラウザで開く（preload なし。保存は localStorage）
 npm run check      # 型検査 + テスト + 公開前の検査。変更を終える前に必ず通す
 npm run build      # out/ にビルド
 npm run preview    # ビルドしたものを起動
