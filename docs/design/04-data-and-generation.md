@@ -73,7 +73,7 @@ type Workspace = {
 }
 ```
 
-`workspace` 表に JSON で 1 行だけ保存する（§4）。形を変えるときは `version` を上げ、読み込みで古い形を新しい形に直す。
+`workspace` 表に JSON で 1 行だけ保存する（§4）。`lastGeneration` は持たず、起動時に履歴から最後の生成とその派生を読み直す（`latestGeneration`、2026-11-05）。形を変えるときは `version` を上げ、読み込みで古い形を新しい形に直す。
 
 ## 3. アイデア
 

@@ -3,9 +3,18 @@
 import { randomUUID } from 'node:crypto'
 import type { DatabaseSync } from 'node:sqlite'
 import { aiErrorInfo } from '@core/aiError'
-import { parseDeriveRequest, parseGenerateRequest, parseHumanIdeaInput, type IdeaRecord } from '@core/idea'
+import { ideasToMarkdown } from '@core/export'
+import {
+  parseDeriveRequest,
+  parseGenerateRequest,
+  parseHumanIdeaInput,
+  parseIdeaListQuery,
+  parseIdeaPatch,
+  type IdeaListResult,
+  type IdeaRecord
+} from '@core/idea'
 import { parseSettingsPatch, type Settings } from '@core/settings'
-import { isString } from '@core/validate'
+import { isString, isStringArray } from '@core/validate'
 import { parseWorkspace, type Workspace } from '@core/workspace'
 import { IpcChannel, type AppInfo, type AuthStatus, type ModelOption, type Result } from '@shared/ipc'
 import type { ApiKeyStore, IdeaModelClient } from '../ai/connection'
@@ -14,7 +23,18 @@ import type { GenerationJobs } from '../ai/jobs'
 import { AuthError } from '../auth/oauth'
 import type { ChatGptAuth } from '../auth/chatgptAuth'
 import { SecretUnavailableError, type SecretStore } from '../secrets/secretStore'
-import { getSettings, insertHumanIdea, loadWorkspace, saveWorkspace, updateSettings } from '../storage'
+import {
+  deleteIdea,
+  getIdeas,
+  getSettings,
+  insertHumanIdea,
+  latestGeneration,
+  listIdeas,
+  loadWorkspace,
+  saveWorkspace,
+  updateIdea,
+  updateSettings
+} from '../storage'
 
 export class InvalidInputError extends Error {
   constructor(what: string) {
@@ -33,6 +53,8 @@ export type HandlerContext = {
   /** 設定で選んだ接続のクライアント */
   client: () => IdeaModelClient
   openExternal: (url: string) => Promise<void>
+  /** 保存ダイアログを出してファイルに書く。取り消したら null、書いたらファイル名 */
+  saveTextFile: (defaultName: string, content: string) => Promise<string | null>
   now?: () => Date
   newId?: () => string
 }
@@ -42,6 +64,18 @@ export type Handlers = Record<(typeof IpcChannel)[keyof typeof IpcChannel], (...
 /** 既定のブラウザで開いてよい先（design/02 §7） */
 const EXTERNAL_HOSTS = new Set(['chatgpt.com', 'help.openai.com', 'platform.openai.com', 'openai.com'])
 const API_KEY_PATTERN = /^sk-[A-Za-z0-9_-]{20,200}$/
+const ID_MAX = 100
+
+/** ファイル名に使えない文字を除く */
+export function markdownFileName(ideas: readonly IdeaRecord[], now: Date): string {
+  const first = ideas[0]
+  if (ideas.length === 1 && first) {
+    const safe = first.title.replace(/[\\/:*?"<>|\u0000-\u001f]/g, '').trim().slice(0, 60)
+    if (safe) return `${safe}.md`
+  }
+  const d = now.toISOString().slice(0, 10).replaceAll('-', '')
+  return `game-ideas-${d}.md`
+}
 
 function toResult<T>(fn: () => Promise<T> | T): Promise<Result<T>> {
   return Promise.resolve()
@@ -86,6 +120,29 @@ export function createHandlers(ctx: HandlerContext): Handlers {
       const input = parseHumanIdeaInput(value)
       if (!input) throw new InvalidInputError('アイデア')
       return insertHumanIdea(ctx.db, input, newId(), now())
+    },
+
+    [IpcChannel.ideaList]: (value): IdeaListResult => {
+      const query = parseIdeaListQuery(value)
+      if (!query) throw new InvalidInputError('一覧の条件')
+      return listIdeas(ctx.db, query)
+    },
+    [IpcChannel.ideaUpdate]: (id, value): IdeaRecord | null => {
+      const patch = parseIdeaPatch(value)
+      if (!isString(id, ID_MAX, 1) || !patch) throw new InvalidInputError('アイデアの更新')
+      return updateIdea(ctx.db, id, patch, now())
+    },
+    [IpcChannel.ideaDelete]: (id): boolean => {
+      if (!isString(id, ID_MAX, 1)) throw new InvalidInputError('アイデアの ID')
+      return deleteIdea(ctx.db, id)
+    },
+    [IpcChannel.ideaLatestGeneration]: (): IdeaRecord[] => latestGeneration(ctx.db),
+    [IpcChannel.ideaExportMarkdown]: async (ids): Promise<{ saved: boolean; fileName: string | null }> => {
+      if (!isStringArray(ids, 500, ID_MAX) || ids.length === 0) throw new InvalidInputError('出力する案')
+      const ideas = getIdeas(ctx.db, ids)
+      if (ideas.length === 0) throw new InvalidInputError('出力する案')
+      const fileName = await ctx.saveTextFile(markdownFileName(ideas, ctx.now?.() ?? new Date()), ideasToMarkdown(ideas))
+      return { saved: fileName !== null, fileName }
     },
 
     [IpcChannel.authStatus]: (): Promise<AuthStatus> => authStatus(),

@@ -12,7 +12,7 @@ function otherGenre(current: string): string {
   return others[Math.floor(Math.random() * others.length)] ?? current
 }
 
-export function DeriveMenu({ idea, disabled }: { idea: IdeaRecord; disabled: boolean }) {
+export function DeriveMenu({ idea, disabled, onStart }: { idea: IdeaRecord; disabled: boolean; onStart?: () => void }) {
   const ai = useAiActions()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'menu' | 'genre' | 'free'>('menu')
@@ -32,6 +32,7 @@ export function DeriveMenu({ idea, disabled }: { idea: IdeaRecord; disabled: boo
   const run = (operation: DeriveOperation, extra?: { genre?: string; instruction?: string }) => {
     setOpen(false)
     setMode('menu')
+    onStart?.()
     void ai.derive(idea, operation, extra)
   }
 

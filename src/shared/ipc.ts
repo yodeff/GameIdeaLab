@@ -2,7 +2,15 @@
 // renderer へ公開する機能はここに型として列挙し、preload はこの型どおりにだけ橋渡しする。
 import type { AiErrorInfo } from '@core/aiError'
 import type { Combination } from '@core/draw'
-import type { DeriveRequest, GenerateRequest, HumanIdeaInput, IdeaRecord } from '@core/idea'
+import type {
+  DeriveRequest,
+  GenerateRequest,
+  HumanIdeaInput,
+  IdeaListQuery,
+  IdeaListResult,
+  IdeaPatch,
+  IdeaRecord
+} from '@core/idea'
 import type { Settings } from '@core/settings'
 import type { Workspace } from '@core/workspace'
 
@@ -13,6 +21,11 @@ export const IpcChannel = {
   settingsGet: 'settings:get',
   settingsUpdate: 'settings:update',
   ideaSaveHuman: 'idea:save-human',
+  ideaList: 'idea:list',
+  ideaUpdate: 'idea:update',
+  ideaDelete: 'idea:delete',
+  ideaLatestGeneration: 'idea:latest-generation',
+  ideaExportMarkdown: 'idea:export-markdown',
   authStatus: 'auth:status',
   authSignIn: 'auth:sign-in',
   authCancelSignIn: 'auth:cancel-sign-in',
@@ -74,6 +87,14 @@ export type GameIdeaLabApi = {
   getSettings: () => Promise<Settings>
   updateSettings: (patch: Partial<Settings>) => Promise<Settings>
   saveHumanIdea: (input: HumanIdeaInput) => Promise<IdeaRecord>
+  listIdeas: (query: IdeaListQuery) => Promise<IdeaListResult>
+  /** 無い ID なら null */
+  updateIdea: (id: string, patch: IdeaPatch) => Promise<IdeaRecord | null>
+  deleteIdea: (id: string) => Promise<boolean>
+  /** 最後の生成の案と派生（再起動後に B モードの結果を戻す） */
+  latestGeneration: () => Promise<IdeaRecord[]>
+  /** 保存ダイアログを出して Markdown を書く。取り消したら saved: false */
+  exportMarkdownFile: (ids: string[]) => Promise<{ saved: boolean; fileName: string | null }>
 
   getAuthStatus: () => Promise<AuthStatus>
   /** ブラウザでサインインする。終わるまで待つ */

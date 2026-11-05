@@ -11,6 +11,11 @@ const api: GameIdeaLabApi = {
   getSettings: () => invoke(IpcChannel.settingsGet),
   updateSettings: (patch) => invoke(IpcChannel.settingsUpdate, patch),
   saveHumanIdea: (input) => invoke(IpcChannel.ideaSaveHuman, input),
+  listIdeas: (query) => invoke(IpcChannel.ideaList, query),
+  updateIdea: (id, patch) => invoke(IpcChannel.ideaUpdate, id, patch),
+  deleteIdea: (id) => invoke(IpcChannel.ideaDelete, id),
+  latestGeneration: () => invoke(IpcChannel.ideaLatestGeneration),
+  exportMarkdownFile: (ids) => invoke(IpcChannel.ideaExportMarkdown, ids),
 
   getAuthStatus: () => invoke(IpcChannel.authStatus),
   signIn: () => invoke(IpcChannel.authSignIn),

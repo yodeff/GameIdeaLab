@@ -4,6 +4,7 @@ import { AI_ERROR_KINDS, aiErrorInfo, type AiErrorKind } from '@core/aiError'
 import type { Combination } from '@core/draw'
 import { DERIVE_LABELS, directionsFor, type GameIdeaBody, type IdeaRecord } from '@core/idea'
 import type { AiEvent, AuthStatus, GameIdeaLabApi } from '@shared/ipc'
+import { addIdea } from './browserIdeas'
 
 type AiApi = Pick<
   GameIdeaLabApi,
@@ -79,7 +80,7 @@ export function createMockAi(): AiApi {
             title: body.title,
             concept: body.concept,
             combination,
-            bodyText: '',
+            bodyText: [body.title, body.concept, body.overview].join(' '),
             body,
             direction: d,
             memo: '',
@@ -91,6 +92,7 @@ export function createMockAi(): AiApi {
             drawContext: null
           }
           ideas.push(idea)
+          addIdea(idea)
           emit({ jobId, type: 'idea', index: i, idea })
         }, 900 * (i + 1))
       )

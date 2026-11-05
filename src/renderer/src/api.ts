@@ -5,9 +5,10 @@ import { parseHumanIdeaInput, type IdeaRecord } from '@core/idea'
 import { DEFAULT_SETTINGS, parseSettingsPatch, readSetting, SETTING_KEYS, type Settings } from '@core/settings'
 import { parseWorkspace } from '@core/workspace'
 import type { GameIdeaLabApi } from '@shared/ipc'
+import { addIdea, createBrowserIdeaApi } from './browserIdeas'
 import { createMockAi, createUnavailableAi, mockAiEnabled } from './mockAi'
 
-const KEY = { workspace: 'gil.workspace', settings: 'gil.settings', ideas: 'gil.ideas' } as const
+const KEY = { workspace: 'gil.workspace', settings: 'gil.settings' } as const
 
 function readJson(key: string): unknown {
   try {
@@ -31,6 +32,7 @@ function readSettings(): Settings {
 function createBrowserApi(): GameIdeaLabApi {
   return {
     ...(mockAiEnabled ? createMockAi() : createUnavailableAi()),
+    ...createBrowserIdeaApi(),
     getAppInfo: async () => ({ name: 'Game Idea Lab', version: 'browser', platform: 'browser' }),
     loadWorkspace: async () => parseWorkspace(readJson(KEY.workspace)),
     saveWorkspace: async (workspace) => {
@@ -70,8 +72,7 @@ function createBrowserApi(): GameIdeaLabApi {
         fidelity: null,
         drawContext: null
       }
-      const ideas = readJson(KEY.ideas)
-      localStorage.setItem(KEY.ideas, JSON.stringify([...(Array.isArray(ideas) ? ideas : []), record]))
+      addIdea(record)
       return record
     }
   }

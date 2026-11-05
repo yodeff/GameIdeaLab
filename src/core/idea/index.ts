@@ -18,3 +18,13 @@ export type { IdeaStreamParser } from './partialIdeas'
 export { createIdeaStreamParser } from './partialIdeas'
 export type { DeriveRequest, GenerateRequest } from './requests'
 export { parseDeriveRequest, parseGenerateRequest } from './requests'
+export type { IdeaListQuery, IdeaListResult, IdeaPatch, IdeaScope } from './queries'
+export {
+  LIST_LIMIT_MAX,
+  MEMO_MAX,
+  applyIdeaPatch,
+  matchesQuery,
+  parseIdeaListQuery,
+  parseIdeaPatch,
+  searchableText
+} from './queries'

@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import type { AiErrorInfo } from '@core/aiError'
 import { formatCombination } from '@core/export'
-import type { IdeaRecord } from '@core/idea'
 import { AI_COUNT_MAX, AI_COUNT_MIN, type Fidelity } from '@core/settings'
 import { isConnected, useAi, useAiActions } from '../app/AiContext'
 import { useActions, useAppState } from '../app/AppContext'
@@ -123,7 +122,8 @@ export function AiIdeaPanel() {
   const actions = useAiActions()
   const { settings } = useAppState()
   const app = useActions()
-  const [detail, setDetail] = useState<IdeaRecord | null>(null)
+  const [detailId, setDetailId] = useState<string | null>(null)
+  const detail = ai.results.find((r) => r.id === detailId) ?? null
   const connected = isConnected(ai.auth, settings.aiConnection)
   const running = ai.job !== null
   const pending = ai.job ? Math.max(0, ai.job.total - ai.job.received) : 0
@@ -186,7 +186,7 @@ export function AiIdeaPanel() {
           )}
           <div className="idea-grid">
             {ai.results.map((idea) => (
-              <IdeaCard key={idea.id} idea={idea} parentTitle={titleOf(idea.parentId)} busy={running} onDetail={() => setDetail(idea)} />
+              <IdeaCard key={idea.id} idea={idea} parentTitle={titleOf(idea.parentId)} busy={running} onDetail={() => setDetailId(idea.id)} />
             ))}
             {Array.from({ length: pending }, (_, i) => (
               <SkeletonCard key={`s-${i}`} />
@@ -197,7 +197,7 @@ export function AiIdeaPanel() {
       {connected && !running && ai.results.length === 0 && !ai.error && (
         <p className="hint empty">組み合わせを決めて「生成」を押すと、{settings.aiCount} 案が届きます（1 案あたり十数秒）。</p>
       )}
-      {detail && <IdeaDetailModal idea={detail} onClose={() => setDetail(null)} />}
+      {detail && <IdeaDetailModal idea={detail} onClose={() => setDetailId(null)} />}
     </section>
   )
 }

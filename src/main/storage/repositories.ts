@@ -1,6 +1,15 @@
 // 設定・作業状態・アイデアの読み書き。node:sqlite を直接触るのは src/main/storage だけ（DECISIONS/0004）。
 import type { DatabaseSync } from 'node:sqlite'
-import { bodyToText, type GameIdeaBody, type HumanIdeaInput, type IdeaRecord } from '@core/idea'
+import {
+  applyIdeaPatch,
+  bodyToText,
+  type GameIdeaBody,
+  type HumanIdeaInput,
+  type IdeaListQuery,
+  type IdeaListResult,
+  type IdeaPatch,
+  type IdeaRecord
+} from '@core/idea'
 import type { Combination } from '@core/draw'
 import type { Fidelity } from '@core/settings'
 import { DEFAULT_SETTINGS, SETTING_KEYS, readSetting, type Settings } from '@core/settings'
@@ -176,4 +185,75 @@ export function pruneHistory(db: DatabaseSync, keep = HISTORY_KEEP): number {
     )
     .run(keep)
   return Number(result.changes)
+}
+
+// --- 一覧・更新・削除（T-20） ------------------------------------------------
+
+/** LIKE の特殊文字（% _）を ! で逃がす（ESCAPE '!'。! 自身も逃がす） */
+const likePattern = (text: string) => `%${text.replace(/[!%_]/g, (c) => `!${c}`)}%`
+
+/** 保存済み・履歴の一覧（D-18 の部分一致、ジャンル、お気に入り）。新しい順 */
+export function listIdeas(db: DatabaseSync, q: IdeaListQuery): IdeaListResult {
+  const where = ['saved = ?']
+  const params: (string | number)[] = [q.scope === 'saved' ? 1 : 0]
+  if (q.favoritesOnly) where.push('favorite = 1')
+  if (q.genre !== null) {
+    where.push('genre = ?')
+    params.push(q.genre)
+  }
+  if (q.text !== '') {
+    const columns = ['title', 'keyword1', 'keyword2', 'genre', 'body_text', 'memo']
+    where.push(`(${columns.map((c) => `${c} LIKE ? ESCAPE '!'`).join(' OR ')})`)
+    params.push(...columns.map(() => likePattern(q.text)))
+  }
+  const clause = where.join(' AND ')
+  const rows = db
+    .prepare(`SELECT * FROM ideas WHERE ${clause} ORDER BY created_at DESC, rowid DESC LIMIT ?`)
+    .all(...params, q.limit) as IdeaRow[]
+  const total = (db.prepare(`SELECT count(*) AS n FROM ideas WHERE ${clause}`).get(...params) as { n: number }).n
+  const genres = (
+    db.prepare('SELECT DISTINCT genre FROM ideas WHERE saved = ? ORDER BY genre').all(q.scope === 'saved' ? 1 : 0) as { genre: string }[]
+  ).map((r) => r.genre)
+  return { ideas: rows.map(toRecord), total, genres }
+}
+
+/** 更新（お気に入りで保存済み、履歴に戻すとお気に入りを外す。applyIdeaPatch の規則） */
+export function updateIdea(db: DatabaseSync, id: string, patch: IdeaPatch, now: string): IdeaRecord | null {
+  const current = getIdea(db, id)
+  if (!current) return null
+  const next = applyIdeaPatch(current, patch, now)
+  db.prepare('UPDATE ideas SET saved = ?, favorite = ?, memo = ?, title = ?, updated_at = ? WHERE id = ?').run(
+    next.saved ? 1 : 0,
+    next.favorite ? 1 : 0,
+    next.memo,
+    next.title,
+    next.updatedAt,
+    id
+  )
+  return getIdea(db, id)
+}
+
+/** 削除。派生案の parent_id は NULL になる（外部キー） */
+export function deleteIdea(db: DatabaseSync, id: string): boolean {
+  return Number(db.prepare('DELETE FROM ideas WHERE id = ?').run(id).changes) > 0
+}
+
+export function getIdeas(db: DatabaseSync, ids: readonly string[]): IdeaRecord[] {
+  return ids.map((id) => getIdea(db, id)).filter((i): i is IdeaRecord => i !== null)
+}
+
+/** 最後の生成の案と、その派生（再起動後に B モードの結果を戻す。design/04 §2） */
+export function latestGeneration(db: DatabaseSync): IdeaRecord[] {
+  const last = db
+    .prepare(`SELECT generation_id FROM ideas WHERE source = 'ai' AND parent_id IS NULL ORDER BY created_at DESC, rowid DESC LIMIT 1`)
+    .get() as { generation_id: string } | undefined
+  if (!last) return []
+  const base = db.prepare('SELECT * FROM ideas WHERE generation_id = ? ORDER BY created_at, rowid').all(last.generation_id) as IdeaRow[]
+  const ids = base.map((r) => r.id)
+  const derived = ids.length
+    ? (db
+        .prepare(`SELECT * FROM ideas WHERE parent_id IN (${ids.map(() => '?').join(',')}) ORDER BY created_at, rowid`)
+        .all(...ids) as IdeaRow[])
+    : []
+  return [...base, ...derived].map(toRecord)
 }

@@ -828,3 +828,171 @@ button.link {
   align-items: center;
   gap: 12px;
 }
+
+/* --- 保存済み（T-22） --------------------------------------------------- */
+
+.saved-screen {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100vh - 54px);
+}
+
+.saved-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.search {
+  min-width: 280px;
+}
+
+.saved-body {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 14px;
+}
+
+.saved-list,
+.saved-detail {
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.saved-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  overflow: auto;
+  flex: 1;
+}
+
+.saved-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border-radius: 8px;
+}
+
+.saved-list li.is-selected {
+  background: var(--accent-soft);
+}
+
+.saved-item {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  border: none;
+  background: none;
+  padding: 6px 4px;
+  text-align: left;
+}
+
+.saved-item-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.saved-list-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.saved-list-footer .hint {
+  margin-right: auto;
+}
+
+.saved-detail {
+  overflow: auto;
+  padding: 18px 22px;
+}
+
+.idea-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.idea-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.idea-detail-header h2 {
+  margin: 0 0 4px;
+  font-size: 19px;
+}
+
+.idea-detail-header .hint {
+  margin: 0;
+}
+
+.memo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memo textarea {
+  min-height: 90px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  line-height: 1.6;
+  resize: vertical;
+}
+
+.idea-detail-actions {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.star.is-active,
+svg.star.is-active {
+  color: #e8a317;
+}
+
+button.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+button.danger {
+  color: var(--danger);
+}
+
+.header-actions button.is-active {
+  background: var(--accent-soft);
+}

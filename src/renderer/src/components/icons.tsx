@@ -75,3 +75,9 @@ export const BackIcon = (p: SVGProps<SVGSVGElement>) => (
     <path d="M15 18l-6-6 6-6" />
   </svg>
 )
+
+export const StarIcon = ({ filled = false, ...p }: SVGProps<SVGSVGElement> & { filled?: boolean }) => (
+  <svg {...base(p)} fill={filled ? 'currentColor' : 'none'}>
+    <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
+  </svg>
+)

@@ -1,7 +1,9 @@
 import { join } from 'node:path'
 import type { DatabaseSync } from 'node:sqlite'
 import { randomUUID } from 'node:crypto'
-import { app, BrowserWindow, ipcMain, safeStorage, screen, shell } from 'electron'
+import { writeFileSync } from 'node:fs'
+import { basename } from 'node:path'
+import { app, BrowserWindow, dialog, ipcMain, safeStorage, screen, shell } from 'electron'
 import type { WindowBounds } from '@core/settings'
 import { AI_EVENT_CHANNEL, type AiEvent } from '@shared/ipc'
 import { ApiKeyStore, apiKeyClient, chatGptClient, clientFor } from './ai/connection'
@@ -109,7 +111,19 @@ void app.whenReady().then(() => {
     apiKeys,
     jobs,
     client,
-    openExternal
+    openExternal,
+    saveTextFile: async (defaultName, content) => {
+      const owner = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+      const options = {
+        title: 'Markdown で保存',
+        defaultPath: join(app.getPath('documents'), defaultName),
+        filters: [{ name: 'Markdown', extensions: ['md'] }]
+      }
+      const result = owner ? await dialog.showSaveDialog(owner, options) : await dialog.showSaveDialog(options)
+      if (result.canceled || !result.filePath) return null
+      writeFileSync(result.filePath, content, 'utf8')
+      return basename(result.filePath)
+    }
   })
   for (const [channel, handler] of Object.entries(handlers)) {
     ipcMain.handle(channel, (_event, ...args: unknown[]) => handler(...args))

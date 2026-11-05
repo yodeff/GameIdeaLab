@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { BackIcon, GearIcon } from '../components/icons'
 import { PlanNoticeModal } from '../components/PlanNoticeModal'
 import { MainScreen } from '../screens/MainScreen'
+import { SavedScreen } from '../screens/SavedScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
 import { useActions, useAppState } from './AppContext'
 
@@ -65,7 +66,11 @@ export function AppShell() {
           </div>
         )}
         <nav className="header-actions">
-          <button type="button" className="ghost" disabled title="保存済みの一覧は STEP 7 で使えるようになります">
+          <button
+            type="button"
+            className={`ghost${screen === 'saved' ? ' is-active' : ''}`}
+            onClick={() => actions.setScreen(screen === 'saved' ? 'main' : 'saved')}
+          >
             保存済み
           </button>
           <button
@@ -79,7 +84,7 @@ export function AppShell() {
           </button>
         </nav>
       </header>
-      {screen === 'settings' ? <SettingsScreen /> : <MainScreen />}
+      {screen === 'settings' ? <SettingsScreen /> : screen === 'saved' ? <SavedScreen /> : <MainScreen />}
       <PlanNoticeModal />
       <Toast />
     </div>

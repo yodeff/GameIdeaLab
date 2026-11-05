@@ -1,6 +1,8 @@
-// 1 案の要約（design/03 §2.4）。お気に入り・保存・コピーは STEP 7（T-23）でつなぐ
+// 1 案の要約（design/03 §2.4）。お気に入り・保存・コピー・詳細・派生（T-23）
 import type { IdeaRecord } from '@core/idea'
+import { useIdeaActions } from '../app/useIdeaActions'
 import { DeriveMenu } from './DeriveMenu'
+import { CopyIcon, StarIcon } from './icons'
 
 type Props = {
   idea: IdeaRecord
@@ -10,6 +12,7 @@ type Props = {
 }
 
 export function IdeaCard({ idea, parentTitle, busy, onDetail }: Props) {
+  const actions = useIdeaActions()
   return (
     <article className={`idea-card${idea.parentId ? ' is-derived' : ''}`}>
       <header className="idea-card-header">
@@ -19,6 +22,17 @@ export function IdeaCard({ idea, parentTitle, busy, onDetail }: Props) {
             ← {parentTitle ?? '元の案'} から（{idea.derivation}）
           </span>
         )}
+        <span className="spacer" />
+        <button
+          type="button"
+          className={`ghost icon-only star${idea.favorite ? ' is-active' : ''}`}
+          aria-pressed={idea.favorite}
+          aria-label={idea.favorite ? 'お気に入りを外す' : 'お気に入りにする'}
+          title={idea.favorite ? 'お気に入りを外す' : 'お気に入り（保存もする）'}
+          onClick={() => void actions.toggleFavorite(idea)}
+        >
+          <StarIcon filled={idea.favorite} />
+        </button>
       </header>
       <h3>{idea.title}</h3>
       <p className="idea-concept">{idea.concept}</p>
@@ -29,6 +43,13 @@ export function IdeaCard({ idea, parentTitle, busy, onDetail }: Props) {
         </p>
       )}
       <footer className="idea-card-actions">
+        <button type="button" className={idea.saved ? 'is-active' : ''} aria-pressed={idea.saved} onClick={() => void actions.toggleSaved(idea)}>
+          {idea.saved ? '保存済み' : '保存'}
+        </button>
+        <button type="button" onClick={() => actions.copy([idea])} title="Markdown でコピー">
+          <CopyIcon width={15} height={15} />
+          コピー
+        </button>
         <button type="button" onClick={onDetail}>
           詳細
         </button>

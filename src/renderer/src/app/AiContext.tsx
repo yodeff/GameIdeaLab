@@ -34,6 +34,9 @@ type Action =
   | { type: 'error'; error: AiErrorInfo | null }
   | { type: 'models'; models: ModelOption[] | null; error: AiErrorInfo | null }
   | { type: 'planNotice'; open: boolean }
+  | { type: 'restored'; ideas: IdeaRecord[] }
+  | { type: 'ideaChanged'; idea: IdeaRecord }
+  | { type: 'ideaRemoved'; id: string }
 
 const initial: AiState = {
   auth: null,
@@ -70,6 +73,21 @@ function reducer(state: AiState, action: Action): AiState {
       return { ...state, models: action.models, modelsError: action.error }
     case 'planNotice':
       return { ...state, planNoticeOpen: action.open }
+    case 'restored': {
+      // 起動時に前回の生成を戻す（design/04 §2）。すでに生成が始まっていれば何もしない
+      if (state.job || state.results.length > 0 || action.ideas.length === 0) return state
+      const first = action.ideas[0]
+      return {
+        ...state,
+        results: action.ideas.reduce<IdeaRecord[]>(insertResult, []),
+        resultCombination: first ? first.combination : null,
+        resultAt: first ? first.createdAt : null
+      }
+    }
+    case 'ideaChanged':
+      return { ...state, results: state.results.map((r) => (r.id === action.idea.id ? action.idea : r)) }
+    case 'ideaRemoved':
+      return { ...state, results: state.results.filter((r) => r.id !== action.id) }
     case 'event': {
       const e = action.event
       if (e.type === 'started') {
@@ -113,6 +131,9 @@ type AiActions = {
   dismissError: () => void
   closePlanNotice: () => void
   openManageUsage: () => void
+  /** 保存済み画面などで案が変わったとき、B モードの結果にも反映する */
+  ideaChanged: (idea: IdeaRecord) => void
+  ideaRemoved: (id: string) => void
 }
 
 const StateCtx = createContext<AiState | null>(null)
@@ -133,6 +154,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   useEffect(() => api.onAiEvent((event) => dispatch({ type: 'event', event })), [])
   useEffect(() => {
     void api.getAuthStatus().then((auth) => dispatch({ type: 'auth', auth }))
+    void api.latestGeneration().then((ideas) => dispatch({ type: 'restored', ideas }))
   }, [])
 
   const refreshAuth = useCallback(async () => dispatch({ type: 'auth', auth: await api.getAuthStatus() }), [])
@@ -211,7 +233,9 @@ export function AiProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'planNotice', open: false })
         void appActions.updateSettings({ planNoticeShown: true })
       },
-      openManageUsage: () => void api.openExternal(MANAGE_USAGE_URL)
+      openManageUsage: () => void api.openExternal(MANAGE_USAGE_URL),
+      ideaChanged: (idea) => dispatch({ type: 'ideaChanged', idea }),
+      ideaRemoved: (id) => dispatch({ type: 'ideaRemoved', id })
     }),
     [refreshAuth, startJob, state.auth, state.job, settings, combination, appActions]
   )

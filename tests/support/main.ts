@@ -57,6 +57,7 @@ export function setupMain(client: IdeaModelClient) {
     openExternal: async () => {}
   })
   const opened: string[] = []
+  const savedFiles: { name: string; content: string }[] = []
   const handlers = createHandlers({
     db,
     appInfo: () => ({ name: 'test', version: '0.0.0', platform: 'test' }),
@@ -68,11 +69,15 @@ export function setupMain(client: IdeaModelClient) {
     openExternal: async (url) => {
       opened.push(url)
     },
+    saveTextFile: async (name, content) => {
+      savedFiles.push({ name, content })
+      return name
+    },
     now: () => new Date('2026-11-05T00:00:00.000Z'),
     newId: () => 'fixed-id'
   })
   const finished = () => new Promise<void>((resolve) => waiters.push(resolve))
-  return { db, jobs, events, handlers, finished, opened }
+  return { db, jobs, events, handlers, finished, opened, savedFiles }
 }
 
 /** 文字列を n 文字ずつに分ける */

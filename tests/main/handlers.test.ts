@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { IpcChannel } from '@shared/ipc'
-import { InvalidInputError } from '../../src/main/ipc/handlers'
+import { InvalidInputError, markdownFileName } from '../../src/main/ipc/handlers'
+import { insertAiIdea } from '../../src/main/storage'
+import { sampleIdea } from '../support/ideas'
 import { scriptedClient, setupMain } from '../support/main'
 
 const setup = () => setupMain(scriptedClient([]).client)
@@ -60,5 +62,32 @@ describe('IPC のハンドラー', () => {
     expect(m.opened).toEqual(['https://chatgpt.com/settings/usage'])
     await expect(m.handlers[IpcChannel.openExternal]('https://evil.example.com/')).rejects.toThrow(InvalidInputError)
     await expect(m.handlers[IpcChannel.openExternal]('file:///C:/Windows')).rejects.toThrow(InvalidInputError)
+  })
+})
+
+describe('Markdown の書き出し（T-21）', () => {
+  it('選んだ案を --- でつないで書き、1 案ならタイトルをファイル名にする', async () => {
+    const m = setup()
+    for (const [id, title] of [['x1', '寄生/自販機:チェーン'], ['x2', '二つ目']] as const) {
+      insertAiIdea(m.db, { body: sampleIdea({ title }), combination, generationId: 'g', model: 'm', fidelity: 'standard' }, id, '2026-11-05T00:00:00.000Z')
+    }
+    expect(await m.handlers[IpcChannel.ideaExportMarkdown](['x1'])).toEqual({ saved: true, fileName: '寄生自販機チェーン.md' })
+    expect(await m.handlers[IpcChannel.ideaExportMarkdown](['x1', 'x2'])).toEqual({ saved: true, fileName: 'game-ideas-20261105.md' })
+    expect(m.savedFiles[1]?.content.split('\n---\n')).toHaveLength(2)
+    await expect(m.handlers[IpcChannel.ideaExportMarkdown]([])).rejects.toThrow(InvalidInputError)
+    await expect(m.handlers[IpcChannel.ideaExportMarkdown](['missing'])).rejects.toThrow(InvalidInputError)
+  })
+
+  it('タイトルに使える文字が無ければ日付のファイル名', () => {
+    const idea = { title: '///', } as Parameters<typeof markdownFileName>[0][number]
+    expect(markdownFileName([idea], new Date('2026-11-05T00:00:00Z'))).toBe('game-ideas-20261105.md')
+  })
+
+  it('更新・削除・一覧は不正な入力を拒否する', () => {
+    const { handlers } = setup()
+    expect(() => handlers[IpcChannel.ideaUpdate]('', { memo: 'x' })).toThrow(InvalidInputError)
+    expect(() => handlers[IpcChannel.ideaUpdate]('id', { evil: 1 })).toThrow(InvalidInputError)
+    expect(() => handlers[IpcChannel.ideaDelete](42)).toThrow(InvalidInputError)
+    expect(() => handlers[IpcChannel.ideaList]({ scope: 'saved' })).toThrow(InvalidInputError)
   })
 })

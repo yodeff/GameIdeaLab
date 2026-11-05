@@ -4,7 +4,12 @@ export { LATEST_VERSION, migrate } from './migrations'
 export type { AiIdeaInput } from './repositories'
 export {
   HISTORY_KEEP,
+  deleteIdea,
   getIdea,
+  getIdeas,
+  latestGeneration,
+  listIdeas,
+  updateIdea,
   getSettings,
   insertAiIdea,
   insertHumanIdea,
