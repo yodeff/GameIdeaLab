@@ -1,0 +1,36 @@
+# 配布の形（DECISIONS/0006）。Windows のインストーラー（NSIS、利用者ごと、署名なし）。
+# 作り方: npm run dist:win → release/ にできる
+appId: io.github.yodeff.gameidealab
+productName: Game Idea Lab
+copyright: Copyright © 2026 yodeff
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/main/**
+  - out/preload/**
+  - out/renderer/**
+  - package.json
+  - '!**/*.map'
+extraResources:
+  - from: THIRD_PARTY_NOTICES.md
+    to: THIRD_PARTY_NOTICES.md
+  - from: LICENSE
+    to: LICENSE.txt
+asar: true
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Game Idea Lab
+  # アンインストールしても保存データ（%APPDATA%\Game Idea Lab）は消さない
+  deleteAppDataOnUninstall: false
+  artifactName: GameIdeaLab-Setup-${version}.${ext}
+publish: null

@@ -15,12 +15,15 @@
     "dev": "electron-vite dev",
     "dev:browser": "vite --config vite.renderer.config.ts",
     "build": "electron-vite build",
+    "build:web": "vite build --config vite.renderer.config.ts && node -e \"for (const f of ['LICENSE', 'THIRD_PARTY_NOTICES.md']) require('node:fs').copyFileSync(f, 'out/web/' + f)\"",
+    "dist:win": "npm run build && node tools/gen-notices.mjs && node tools/dist-win.mjs",
     "preview": "electron-vite preview",
     "typecheck": "tsc -p tsconfig.node.json --noEmit && tsc -p tsconfig.web.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm test && npm run check:public",
     "check:public": "node tools/check-public.mjs",
+    "smoke:restart": "node tools/restart-cycles.mjs",
     "eval:ideas": "electron-vite build && electron . --eval-ideas",
     "bench:models": "electron-vite build && electron . --bench-models"
   },
@@ -30,13 +33,12 @@
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "electron": "^45.2.3",
+    "electron-builder": "^26.18.0",
     "electron-vite": "^6.0.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "^7.0.2",
     "vite": "^8.3.5",
     "vitest": "^5.1.0"
-  },
-  "dependencies": {
-    "react": "^19.3.1",
-    "react-dom": "^19.3.1"
   }
 }

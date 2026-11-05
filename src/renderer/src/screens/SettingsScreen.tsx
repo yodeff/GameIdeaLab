@@ -6,6 +6,7 @@ import { useActions, useAppState } from '../app/AppContext'
 import { PlanBadge } from '../components/AiIdeaPanel'
 import { ModelSelect, ReasoningSelect } from '../components/ModelControls'
 import { sounds } from '../sound/player'
+import { isTrial } from '../api'
 
 const THEMES: { value: Theme; label: string }[] = [
   { value: 'system', label: 'システムに合わせる' },
@@ -138,80 +139,91 @@ export function SettingsScreen() {
     <main className="settings-screen">
       <h2>設定</h2>
 
-      <section className="settings-section">
-        <h3>AI の接続</h3>
-        {auth && !auth.encryptionAvailable && (
-          <p className="error-banner">この環境では秘密の情報を安全に保存できないため、サインインと API キーは使えません。</p>
-        )}
-        <h4>ChatGPT</h4>
-        <ChatGptSection />
-        <h4>API キー</h4>
-        <ApiKeySection />
-        <h4>使う接続</h4>
-        <div className="radio-row" role="radiogroup" aria-label="使う接続">
-          {(
-            [
-              ['chatgpt', 'ChatGPT プラン'],
-              ['apiKey', 'API キー']
-            ] as const
-          ).map(([value, label]) => (
-            <label key={value}>
-              <input
-                type="radio"
-                name="connection"
-                checked={settings.aiConnection === value}
-                onChange={() => void app.updateSettings({ aiConnection: value })}
-              />
-              {label}
-              {!canUse[value] && <span className="hint">（未設定）</span>}
-            </label>
-          ))}
-        </div>
-        <p className="hint">使えない接続に自動で切り替えることはありません。</p>
-      </section>
-
-      <section className="settings-section">
-        <h3>生成</h3>
-        <div className="form-grid">
-          <label htmlFor="model">モデル</label>
-          <div className="row">
-            <ModelSelect id="model" />
-            {!connected && <span className="hint">接続するとモデルの一覧が出ます</span>}
-            {ai.modelsError && <span className="hint">一覧を取れませんでした（{ai.modelsError.message}）</span>}
-            {selectedModel?.description && <span className="hint">{selectedModel.description}</span>}
-          </div>
-
-          <label htmlFor="reasoning">考える深さ</label>
-          <div className="row">
-            <ReasoningSelect id="reasoning" />
-            <span className="hint">浅いほど早く届き、利用量も少なくなります。深いほど時間と利用量が増えます（fast モードとは別のもので、fast モードは使いません）</span>
-          </div>
-
-          <label htmlFor="count">案の数の既定</label>
-          <select id="count" value={settings.aiCount} onChange={(e) => void app.updateSettings({ aiCount: Number(e.target.value) })}>
-            {Array.from({ length: AI_COUNT_MAX - AI_COUNT_MIN + 1 }, (_, i) => i + AI_COUNT_MIN).map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-
-          <span>キーワードへの忠実度</span>
-          <div className="radio-row" role="radiogroup" aria-label="キーワードへの忠実度">
-            {FIDELITIES.map((f) => (
-              <label key={f.value} title={f.hint}>
+      {isTrial ? (
+        <section className="settings-section">
+          <h3>お試し版</h3>
+          <p className="hint">
+            ブラウザのお試し版です。AI に考えさせる機能はデスクトップ版で使えます。データ（設定・下書き・保存した案）はこのブラウザの中にだけ保存され、ブラウザのデータを消すと消えます。残したい案は Markdown で書き出してください。
+          </p>
+        </section>
+      ) : (
+        <>
+        <section className="settings-section">
+          <h3>AI の接続</h3>
+          {auth && !auth.encryptionAvailable && (
+            <p className="error-banner">この環境では秘密の情報を安全に保存できないため、サインインと API キーは使えません。</p>
+          )}
+          <h4>ChatGPT</h4>
+          <ChatGptSection />
+          <h4>API キー</h4>
+          <ApiKeySection />
+          <h4>使う接続</h4>
+          <div className="radio-row" role="radiogroup" aria-label="使う接続">
+            {(
+              [
+                ['chatgpt', 'ChatGPT プラン'],
+                ['apiKey', 'API キー']
+              ] as const
+            ).map(([value, label]) => (
+              <label key={value}>
                 <input
                   type="radio"
-                  name="fidelity"
-                  checked={settings.aiFidelity === f.value}
-                  onChange={() => void app.updateSettings({ aiFidelity: f.value })}
+                  name="connection"
+                  checked={settings.aiConnection === value}
+                  onChange={() => void app.updateSettings({ aiConnection: value })}
                 />
-                {f.label}
+                {label}
+                {!canUse[value] && <span className="hint">（未設定）</span>}
               </label>
             ))}
           </div>
-        </div>
-      </section>
+          <p className="hint">使えない接続に自動で切り替えることはありません。</p>
+        </section>
+
+        <section className="settings-section">
+          <h3>生成</h3>
+          <div className="form-grid">
+            <label htmlFor="model">モデル</label>
+            <div className="row">
+              <ModelSelect id="model" />
+              {!connected && <span className="hint">接続するとモデルの一覧が出ます</span>}
+              {ai.modelsError && <span className="hint">一覧を取れませんでした（{ai.modelsError.message}）</span>}
+              {selectedModel?.description && <span className="hint">{selectedModel.description}</span>}
+            </div>
+
+            <label htmlFor="reasoning">考える深さ</label>
+            <div className="row">
+              <ReasoningSelect id="reasoning" />
+              <span className="hint">浅いほど早く届き、利用量も少なくなります。深いほど時間と利用量が増えます（fast モードとは別のもので、fast モードは使いません）</span>
+            </div>
+
+            <label htmlFor="count">案の数の既定</label>
+            <select id="count" value={settings.aiCount} onChange={(e) => void app.updateSettings({ aiCount: Number(e.target.value) })}>
+              {Array.from({ length: AI_COUNT_MAX - AI_COUNT_MIN + 1 }, (_, i) => i + AI_COUNT_MIN).map((n) => (
+                <option key={n} value={n}>
+                  {n}
+                </option>
+              ))}
+            </select>
+
+            <span>キーワードへの忠実度</span>
+            <div className="radio-row" role="radiogroup" aria-label="キーワードへの忠実度">
+              {FIDELITIES.map((f) => (
+                <label key={f.value} title={f.hint}>
+                  <input
+                    type="radio"
+                    name="fidelity"
+                    checked={settings.aiFidelity === f.value}
+                    onChange={() => void app.updateSettings({ aiFidelity: f.value })}
+                  />
+                  {f.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </section>
+        </>
+      )}
 
       <section className="settings-section">
         <h3>音</h3>

@@ -8,6 +8,8 @@ import { useActions, useAppState } from '../app/AppContext'
 import { IdeaDetailModal } from './IdeaDetail'
 import { IdeaCard, SkeletonCard } from './IdeaCard'
 import { ModelSelect, ReasoningSelect } from './ModelControls'
+import { isTrial } from '../api'
+import { DOWNLOAD_URL } from '../links'
 
 const FIDELITY_LABELS: Record<Fidelity, string> = { strict: '厳格', standard: '標準', free: '自由' }
 
@@ -118,7 +120,35 @@ function ErrorBanner({ error }: { error: AiErrorInfo }) {
   )
 }
 
+/** お試し版（ブラウザ）の B モード。AI はデスクトップ版だけで使える（DECISIONS/0006） */
+function TrialAiNotice() {
+  return (
+    <section className="panel ai-panel trial-notice" aria-label="AI に考えさせる">
+      <h2>AI に考えさせるのは、デスクトップ版の機能です</h2>
+      <p>
+        デスクトップ版では、この組み合わせから AI がゲームの案を 1〜10 案出します（王道・変化球・実験的）。ChatGPT の Plus・Pro
+        のプランでサインインして使います。
+      </p>
+      <p className="hint">
+        お試し版でも、抽選・自分で考える（A モード）・保存・Markdown での書き出しはすべて使えます。データはこのブラウザの中にだけ保存されます。
+      </p>
+      {DOWNLOAD_URL && (
+        <p>
+          <a className="button primary" href={DOWNLOAD_URL} target="_blank" rel="noreferrer">
+            デスクトップ版を入手する
+          </a>
+        </p>
+      )}
+    </section>
+  )
+}
+
 export function AiIdeaPanel() {
+  if (isTrial) return <TrialAiNotice />
+  return <AiIdeaPanelBody />
+}
+
+function AiIdeaPanelBody() {
   const ai = useAi()
   const actions = useAiActions()
   const { settings } = useAppState()

@@ -6,6 +6,7 @@ import { MainScreen } from '../screens/MainScreen'
 import { SavedScreen } from '../screens/SavedScreen'
 import { SettingsScreen } from '../screens/SettingsScreen'
 import { configureSound } from '../sound/player'
+import { isTrial } from '../api'
 import { useActions, useAppState } from './AppContext'
 
 const TOAST_MS = 2400
@@ -51,7 +52,14 @@ export function AppShell() {
     <div className="app">
       <header className="app-header">
         {screen === 'main' ? (
-          <h1>Game Idea Lab</h1>
+          <h1>
+            Game Idea Lab
+            {isTrial && (
+              <span className="trial-badge" title="ブラウザのお試し版。AI はデスクトップ版で使えます">
+                お試し版
+              </span>
+            )}
+          </h1>
         ) : (
           <button type="button" className="ghost" onClick={() => actions.setScreen('main')}>
             <BackIcon />

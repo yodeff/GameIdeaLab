@@ -23,7 +23,8 @@ type AiApi = Pick<
 >
 
 const mockParam = new URLSearchParams(location.search).get('mock-ai')
-export const mockAiEnabled = mockParam !== null
+/** 偽の AI は開発時だけ（お試し版で偽の案を本物と見間違えないように） */
+export const mockAiEnabled = import.meta.env.DEV && mockParam !== null
 const failWith = AI_ERROR_KINDS.find((k) => k === mockParam) as AiErrorKind | undefined
 
 function sample(direction: GameIdeaBody['direction'], c: Combination, n: number): GameIdeaBody {

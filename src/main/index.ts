@@ -105,6 +105,11 @@ function readSettingsOnce(): Settings {
   }
 }
 
+// 保存先を別のフォルダにする（手で確かめるときに本物のデータを触らないため。06-manual-checks.md）。
+// 配ったアプリでも効く（保存先が変わるだけ）。単一起動のロックも保存先ごとなので、本物のアプリと並べて起動できる
+const userDataOverride = process.env['GIL_USER_DATA']
+if (userDataOverride) app.setPath('userData', userDataOverride)
+
 // 同じ DB を 2 つのアプリが同時に使わないように、2 つ目の起動は 1 つ目の窓を前に出して終わる
 if (!devTool && !app.requestSingleInstanceLock()) {
   app.quit()

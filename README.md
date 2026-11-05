@@ -23,6 +23,9 @@ npm run dev
 | `npm run dev:browser` | 画面だけをブラウザで開く（http://127.0.0.1:5180。保存は localStorage） |
 | `npm run check` | 型検査・テスト・公開前の検査 |
 | `npm run build` | `out/` にビルド |
+| `npm run dist:win` | Windows のインストーラーを `release/` に作る（NSIS・署名なし。DECISIONS/0006） |
+| `npm run build:web` | ブラウザのお試し版（AI なし）を `out/web/` に作る。入手先のリンクは `VITE_DOWNLOAD_URL` で渡す |
+| `npm run smoke:restart` | 起動・操作・終了（強制終了を含む）を繰り返して DB の健全さを確かめる。一時フォルダの保存先を使う |
 | `npm run preview` | ビルドしたものを起動 |
 | `npm run eval:ideas` | 生成の質の評価（開発用。アプリでサインインした接続で 10 通りを生成し `private/eval/` に書く） |
 

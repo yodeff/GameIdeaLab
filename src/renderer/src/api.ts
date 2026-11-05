@@ -80,3 +80,5 @@ function createBrowserApi(): GameIdeaLabApi {
 
 export const api: GameIdeaLabApi = window.gameIdeaLab ?? createBrowserApi()
 export const isDesktop = window.gameIdeaLab !== undefined
+/** ブラウザのお試し版（AI なし。DECISIONS/0006）。開発時に偽の AI を使うときは AI の画面を出す */
+export const isTrial = !isDesktop && !mockAiEnabled

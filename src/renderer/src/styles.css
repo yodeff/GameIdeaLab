@@ -157,6 +157,43 @@ kbd {
   margin: 0;
   font-size: 17px;
   letter-spacing: 0.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ブラウザのお試し版（DECISIONS/0006） */
+.trial-badge {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.trial-notice h2 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.trial-notice p {
+  margin: 0 0 8px;
+  line-height: 1.7;
+}
+
+a.button {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+a.button.primary {
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
 }
 
 .header-actions {
@@ -355,6 +392,20 @@ kbd {
 @container (max-width: 270px) {
   .slot-action-label {
     display: none;
+  }
+}
+
+/* さらに狭いときは、名前を 1 行目に、カテゴリと × を 2 行目にする（名前が「ジャン…」と切れないように） */
+@container (max-width: 210px) {
+  .slot-header {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .slot-label {
+    flex-basis: 100%;
+  }
+  .slot-header-actions {
+    margin-left: auto;
   }
 }
 
