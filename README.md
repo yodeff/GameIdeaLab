@@ -13,7 +13,7 @@
 
 ### デスクトップ版（Windows）
 
-1. [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) から `GameIdeaLab-Setup-<版>.exe` を入手して実行します。
+1. [Releases](https://github.com/yodeff/GameIdeaLab/releases/latest) から `GameIdeaLab-Setup-<版>.exe` を入手して実行します。
 2. 署名をしていないため、初回は「Windows によって PC が保護されました」と出ます。「詳細情報」→「実行」で進めてください。
 3. B モード（AI）は、ChatGPT の Plus・Pro のプランでサインインして使います（「Continue with ChatGPT」）。設定で自分の OpenAI API キーを選ぶこともできます（API の利用料がかかります）。
 
@@ -21,7 +21,7 @@
 
 ### デスクトップ版（Mac・試験的）
 
-1. [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) から、Apple Silicon の Mac は `GameIdeaLab-<版>-arm64.dmg`、Intel の Mac は `GameIdeaLab-<版>-x64.dmg` を入手し、アプリを「アプリケーション」へ入れます。
+1. [Releases](https://github.com/yodeff/GameIdeaLab/releases/latest) から、Apple Silicon の Mac は `GameIdeaLab-<版>-arm64.dmg`、Intel の Mac は `GameIdeaLab-<版>-x64.dmg` を入手し、アプリを「アプリケーション」へ入れます。
 2. 公証をしていないため、初回は「開発元を確認できない」と出て開けません。「システム設定 → プライバシーとセキュリティ」の下の方にある「このまま開く」を押してください。
 3. 保存データは `~/Library/Application Support/Game Idea Lab` にあります。
 
@@ -29,7 +29,7 @@ Mac 版はまだ実機での確かめが済んでいません。動かないと�
 
 ### ブラウザのお試し版
 
-[https://yodeff.github.io/game-idea-lab/](https://yodeff.github.io/game-idea-lab/)（公開後）で、インストールせずに、抽選・自分で考える（A モード）・保存・Markdown での書き出しを試せます。AI の機能はデスクトップ版だけです。データはそのブラウザの中にだけ保存されます。
+[https://yodeff.github.io/GameIdeaLab/](https://yodeff.github.io/GameIdeaLab/)（公開後）で、インストールせずに、抽選・自分で考える（A モード）・保存・Markdown での書き出しを試せます。AI の機能はデスクトップ版だけです。データはそのブラウザの中にだけ保存されます。
 
 ## English
 
@@ -40,7 +40,7 @@ Mac 版はまだ実機での確かめが済んでいません。動かないと�
 - Save ideas, mark favorites, and export them as Markdown.
 - A browser trial version (no AI) is also available.
 
-The UI and word lists are in Japanese. Download the installer from [Releases](https://github.com/yodeff/game-idea-lab/releases/latest) (not signed or notarized, so Windows SmartScreen / macOS Gatekeeper will warn you on first run; on macOS use System Settings → Privacy & Security → Open Anyway). See [SECURITY.md](SECURITY.md) for what the app stores and how to report vulnerabilities.
+The UI and word lists are in Japanese. Download the installer from [Releases](https://github.com/yodeff/GameIdeaLab/releases/latest) (not signed or notarized, so Windows SmartScreen / macOS Gatekeeper will warn you on first run; on macOS use System Settings → Privacy & Security → Open Anyway). See [SECURITY.md](SECURITY.md) for what the app stores and how to report vulnerabilities.
 
 ## 開発
 

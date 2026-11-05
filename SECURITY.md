@@ -2,9 +2,9 @@
 
 ## Reporting a vulnerability / 脆弱性の報告
 
-Please report security issues privately through GitHub's **"Report a vulnerability"** button on the [Security tab](https://github.com/yodeff/game-idea-lab/security/advisories/new). Do not open a public issue for security problems.
+Please report security issues privately through GitHub's **"Report a vulnerability"** button on the [Security tab](https://github.com/yodeff/GameIdeaLab/security/advisories/new). Do not open a public issue for security problems.
 
-脆弱性は、公開の Issue ではなく、GitHub の [Security タブ](https://github.com/yodeff/game-idea-lab/security/advisories/new) の「Report a vulnerability」から非公開で知らせてください。
+脆弱性は、公開の Issue ではなく、GitHub の [Security タブ](https://github.com/yodeff/GameIdeaLab/security/advisories/new) の「Report a vulnerability」から非公開で知らせてください。
 
 We will reply as soon as we can. This is a small hobby project, so fixes may take some time.
 

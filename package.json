@@ -5,13 +5,13 @@
   "description": "ランダムなキーワードとゲームジャンルの組み合わせから、ゲームアイデアの種を見つけるデスクトップアプリ",
   "license": "MIT",
   "author": "yodeff",
-  "homepage": "https://github.com/yodeff/game-idea-lab#readme",
+  "homepage": "https://github.com/yodeff/GameIdeaLab#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yodeff/game-idea-lab.git"
+    "url": "git+https://github.com/yodeff/GameIdeaLab.git"
   },
   "bugs": {
-    "url": "https://github.com/yodeff/game-idea-lab/issues"
+    "url": "https://github.com/yodeff/GameIdeaLab/issues"
   },
   "private": true,
   "type": "module",

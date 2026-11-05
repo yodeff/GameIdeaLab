@@ -13,9 +13,9 @@
 - メンテナーの要望で足したもの（2 回目）: スロットを可変にした。ジャンルを左に置き、ジャンル 0〜3・キーワード 1〜5 を足し外しできる（[DECISIONS/0005](DECISIONS/0005-variable-slots.md)）。
 - 効果音: 抽選中のガラガラ・スロットが止まる音・当たりの鐘・案が出そろったジングル（audio-studio で生成。設定でオン・オフと音量。design/03 §2.7）。
 - 配布（DECISIONS/0006）: Windows のインストーラー（`npm run dist:win`、NSIS・署名なし）と、ブラウザのお試し版（`npm run build:web`、AI なし）。アイコン・ライセンスの表記（`THIRD_PARTY_NOTICES.md`）も入る。
-- 公開の準備（T-26）: `SECURITY.md`、README の使い方と英語の要約、`package.json` の `repository`、ワークフロー（CI・インストーラーを Releases に下書きで置く・お試し版を Pages に手で置く）、手順書 [RELEASING.md](RELEASING.md)。リポジトリ名は `yodeff/game-idea-lab` と仮に置いた。
+- 公開の準備（T-26）: `SECURITY.md`、README の使い方と英語の要約、`package.json` の `repository`、ワークフロー（CI・インストーラーを Releases に下書きで置く・お試し版を Pages に手で置く）、手順書 [RELEASING.md](RELEASING.md)。リポジトリはメンテナーが `yodeff/GameIdeaLab`（公開）として作った（2026-11-05）。
 - Mac: コードと配布の設定は済み（DECISIONS/0007）。dmg は GitHub Actions の Mac の環境で作る。実機での確かめはまだ。
-- まだ無いもの: GitHub のリポジトリ（公開はメンテナーが決める）、Mac の実機での確かめ。
+- まだ無いもの: GitHub への push（公開はメンテナーが決める）、Mac の実機での確かめ。
 - 手で確かめた結果: [design/06-manual-checks.md](design/06-manual-checks.md)。
 - STEP 1 の結果: [design/01-requirements.md](design/01-requirements.md)（未確定事項 D-1〜D-23 と初期値の案、リスク R-1〜R-12）。
 - STEP 2 の結果: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)（公式仕様の確認）と [DECISIONS/0003](DECISIONS/0003-ai-connection.md)（AI の接続。採用）。
@@ -26,7 +26,7 @@
 ## 次にやること
 
 1. メンテナー: `npm run dev` で一通り触って感想をもらう（Q-7・Q-8）。
-2. 公開するとき（メンテナー）: GitHub に `yodeff/game-idea-lab` を作って push し、Pages と脆弱性の報告の窓口を有効にして、タグを付ける（[RELEASING.md](RELEASING.md)）。デモ動画は別のセッションで作っている（`private/promo/`）。
+2. 公開するとき（メンテナー）: `yodeff/GameIdeaLab` に push し、Pages と脆弱性の報告の窓口を有効にして、タグを付ける（[RELEASING.md](RELEASING.md)）。デモ動画は別のセッションで作っている（`private/promo/`）。
 
 ## メンテナーの判断待ち
 

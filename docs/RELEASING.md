@@ -4,7 +4,7 @@
 
 ## はじめて公開するとき（1 回だけ）
 
-1. GitHub に `yodeff/game-idea-lab` を作り（空のまま）、このリポジトリを push する。
+1. GitHub に `yodeff/GameIdeaLab` を作り（空のまま）、このリポジトリを push する。
    名前を変えるなら、`package.json` の `homepage`・`repository`・`bugs`、`README.md`、`SECURITY.md` の URL も直す。
 2. リポジトリの設定:
    - **Settings → Pages → Source** を「GitHub Actions」にする（お試し版の置き場）。
