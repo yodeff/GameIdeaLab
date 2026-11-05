@@ -240,3 +240,9 @@
 - **electron-builder の道具の置き場が暗号化の印を受け継ぐ**: この PC では `%LOCALAPPDATA%` に暗号化（EFS）の印が付いている。electron-builder は道具（NSIS など）を `%LOCALAPPDATA%\electron-builder\Cache` に展開するので、中のファイルにも印が移り、暗号化を使えない Windows Home ではコピーで「The specified file could not be encrypted」になる。置き場を `node_modules/.cache/electron-builder` に移した（`tools/dist-win.mjs` が `ELECTRON_BUILDER_CACHE` を付ける）。
 - **確かめの道具を本物のデータに向けてしまった**: ビルドがメモリ不足で失敗したのに気づかず、古いビルド（保存先の切り替え `GIL_USER_DATA` に対応していない）で `smoke:restart` を走らせた。アプリは本物の保存先を使い、試しの案 6 件を保存し、案の数の既定を 3 から 7 に変えた。すぐに、その 6 件の削除・既定の戻し・作業状態の戻しで片付け、健全さを確かめた。
 - 対応: `smoke:restart` は、起動の直後に一時フォルダに DB ができていなければ何もせずに止める。ビルドの失敗（`⨯`）を見たら、その後の確かめをしない。保存先の切り替えは配る形でも効くようにした。
+
+## L-25 electron-builder でターゲットを名指しすると、設定の arch が効かない（2026-11-05）
+
+- 起きたこと: v0.1.0 の Release で、Mac の dmg が Apple Silicon（arm64）の 1 つしかできなかった。`electron-builder.yml` には `arch: [arm64, x64]` と書いていた。
+- 理由: `npm run dist:mac` が `electron-builder --mac dmg` とターゲットをコマンドで名指ししていた。名指しすると設定の arch は使われず、動いている機械の arch（GitHub Actions の Mac は Apple Silicon）だけになる。ワークフローは成功と出たので、下書きを見るまで気づかなかった。
+- 対応: arch もコマンドで渡す（`--mac dmg --arm64 --x64`、Windows も `--x64`）。Release のワークフローに「できたファイルの数」の検査を足し、数が違えば失敗させる。同じタグで作り直したときは、下書きのファイルを差し替える。

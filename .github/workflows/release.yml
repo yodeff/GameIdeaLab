@@ -20,9 +20,12 @@ jobs:
           - os: windows-latest
             script: dist:win
             files: release/GameIdeaLab-Setup-*.exe
+            count: 1
           - os: macos-latest
             script: dist:mac
             files: release/GameIdeaLab-*.dmg
+            # Apple Silicon（arm64）と Intel（x64）の 2 つ
+            count: 2
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -44,6 +47,15 @@ jobs:
         env:
           # Mac: 手元の鍵束から証明書を探さない（アドホック署名だけにする）
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: できたファイルの数を確かめる
+        shell: bash
+        run: |
+          ls -la ${{ matrix.files }}
+          n=$(ls ${{ matrix.files }} | wc -l)
+          if [ "$n" -ne ${{ matrix.count }} ]; then
+            echo "できたファイルが ${n} 個です（${{ matrix.count }} 個のはず）" >&2
+            exit 1
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: installer-${{ matrix.os }}
@@ -65,5 +77,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           ls -la dist
-          gh release create "${GITHUB_REF_NAME}" dist/* \
-            --repo "${GITHUB_REPOSITORY}" --draft --title "Game Idea Lab ${GITHUB_REF_NAME}" --generate-notes
+          # 同じタグの Release があれば（作り直したとき）、ファイルを差し替える。下書きのままにする
+          if gh release view "${GITHUB_REF_NAME}" --repo "${GITHUB_REPOSITORY}" > /dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" dist/* --repo "${GITHUB_REPOSITORY}" --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --repo "${GITHUB_REPOSITORY}" --draft --title "Game Idea Lab ${GITHUB_REF_NAME}" --generate-notes
+          fi

@@ -9,5 +9,5 @@ const root = join(import.meta.dirname, '..')
 const env = { ...process.env }
 env['ELECTRON_BUILDER_CACHE'] ??= join(root, 'node_modules', '.cache', 'electron-builder')
 const bin = join(root, 'node_modules', '.bin', process.platform === 'win32' ? 'electron-builder.cmd' : 'electron-builder')
-const r = spawnSync(bin, ['--win', 'nsis'], { cwd: root, env, stdio: 'inherit', shell: process.platform === 'win32' })
+const r = spawnSync(bin, ['--win', 'nsis', '--x64'], { cwd: root, env, stdio: 'inherit', shell: process.platform === 'win32' })
 process.exit(r.status ?? 1)
