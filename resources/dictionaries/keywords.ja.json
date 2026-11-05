@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "kind": "keyword",
+  "categories": [
+    { "id": "object", "label": "モノ・道具", "words": ["自動販売機"] },
+    { "id": "place", "label": "場所・施設", "words": [] },
+    { "id": "creature", "label": "生物・人物", "words": [] },
+    { "id": "action", "label": "行動・動作", "words": ["寄生"] },
+    { "id": "nature", "label": "自然・現象", "words": [] },
+    { "id": "abstract", "label": "抽象概念", "words": [] },
+    { "id": "society", "label": "社会・制度", "words": [] },
+    { "id": "technology", "label": "技術・機械", "words": [] },
+    { "id": "culture", "label": "文化・娯楽", "words": [] },
+    { "id": "misc", "label": "その他", "words": [] }
+  ]
+}

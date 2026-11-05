@@ -1,0 +1,18 @@
+node_modules/
+out/
+dist/
+release/
+coverage/
+*.log
+
+# メンテナーの環境だけのメモ（docs/DECISIONS/0002）
+/private/
+
+# ローカルのデータ・機密情報（コミットしない）
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+.env
+.env.*
+!.env.example
