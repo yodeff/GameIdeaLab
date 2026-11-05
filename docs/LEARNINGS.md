@@ -18,6 +18,9 @@
 | L-1 | 2026-11-05 | 技術 | はい | TypeScript 7 で `baseUrl` が廃止。`paths` は `./` 始まりの相対パスで書く |
 | L-2 | 2026-11-05 | 技術 | はい | Electron の `sandbox: true` の preload は ESM を読めない。`"type": "module"` の構成では preload だけ CommonJS（`.cjs`）で出力する |
 | L-3 | 2026-11-05 | 技術 | はい | Electron 45 は Node 24.22 を内蔵し、`node:sqlite`（SQLite 3.53.4）がそのまま使える。ネイティブモジュールの再ビルドが要らない |
+| L-4 | 2026-11-05 | 仕様 | はい | Sign in with ChatGPT には OSS・ローカルアプリ向けの流れがあり、クライアントシークレットなしで利用者の ChatGPT プランから Responses API を呼べる。ただし `store: false`・`stream: true` が必須で、`temperature`・`max_output_tokens` は指定できない |
+| L-5 | 2026-11-05 | 仕様 | はい | Sign in with ChatGPT の OSS 向けの流れは事前の承認なしで動いた。JSON Schema の構造化出力も使える。ただし `/v1/models` は `{models:[{slug,...}]}` の形で、`response.completed` の `output` は空。出力はストリームの途中のイベントから組み立てる |
+| L-6 | 2026-11-05 | 技術 | はい | `node:sqlite` は Electron 45 と Node 24.12 の両方で WAL・`user_version`・`VACUUM INTO`・`backup()`・FTS5・JSON 関数が動く。控え・マイグレーション・全文検索まで追加の依存なしでできる |
 
 ---
 
@@ -38,3 +41,23 @@
 - 分かったこと: `ELECTRON_RUN_AS_NODE=1 electron -e ...` で確かめたところ、Electron 45.2.3 は Node 24.22.2・Chromium 156 を内蔵し、`require('node:sqlite')` の `DatabaseSync` が動いた（SQLite 3.53.4）。
 - 意味: `better-sqlite3` のようなネイティブモジュールは Electron 向けの再ビルドが要り、Windows では失敗しやすい。`node:sqlite` なら追加の依存なしで SQLite を使える。
 - 反映: STATE.md の U-1。採否は STEP 3 で決める（API の安定度と、WAL・バックアップの扱いを確かめてから）。
+
+## L-4 Sign in with ChatGPT の OSS 向けの流れ（2026-11-05 時点、プレビュー）
+
+- 分かったこと: OpenAI の公式文書に「オープンソースでローカルで動くアプリ」向けの流れがある。`client_id=dynamic_agent_client` で認可を始めるとサインインのときにクライアントが動的に登録され、`oaiapp_…` の `client_id` が発行される。受け口は `http://127.0.0.1:<ポート>/…`（`localhost` は不可）。スコープ `resource.invoke chatgpt.tokens.use.direct` に同意すると、アクセストークンで `POST https://api.openai.com/v1/responses` を利用者のプランで呼べる。
+- 制約: `store: false`・`stream: true` が必須、`input` は配列、`temperature`・`top_p`・`max_output_tokens` などは送れない、`previous_response_id` は使えない。アクセストークンは 1 時間、リフレッシュトークンは 30 日で更新のたびに置き換わる。プランを使えるのは Plus・Pro の利用者（公式の案内）。
+- 分からなかったこと: OSS アプリに事前の承認が要るか、構造化出力が使えるか、配布の条件。
+- 反映: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)、[DECISIONS/0003](DECISIONS/0003-ai-connection.md)。多様さや長さを引数で調整できないので、指示文で調整する前提で設計する。
+
+## L-5 Sign in with ChatGPT の試作で分かったこと（公式文書に無いこと）
+
+- 起きたこと: 公式文書どおりに `GET /v1/models` の `data` を読んだら 0 件だった。実際は `{"models": [...]}` の形で、各要素は `id` ではなく `slug` を持つ。また、`response.completed` の `response.output` が空で、関数ツールの引数を完了イベントから取れなかった。
+- 理由: プラン利用の経路の応答は、通常の API キーの Responses API と形が違う（Codex 向けのモデル一覧に近い）。公式文書は細部まで書いていない。
+- 対応: モデル一覧は `models`・`slug`・`visibility` で読む。出力は `response.output_text.delta`・`response.output_item.done`・`response.function_call_arguments.done` から組み立てる。事前の承認なしで動的登録と同意まで進めること、`text.format` の JSON Schema（`strict: true`）が使えることも確かめた。詳細は [research §8](research/sign-in-with-chatgpt.md)、決定は [DECISIONS/0003](DECISIONS/0003-ai-connection.md) §5。
+- 教訓: プレビューの API は、文書の形を信じて組まず、生の応答を記録する試作で確かめてから設計する。
+
+## L-6 `node:sqlite` でできること
+
+- 分かったこと: Electron 45（Node 24.22.2）と Node 24.12 で、`PRAGMA journal_mode=WAL`、`PRAGMA user_version`、`VACUUM INTO '<path>'`、`backup()`、FTS5 の仮想表、`json_extract`、日本語の `LIKE` が動いた（警告も出ない）。
+- 意味: 起動時の控え（`VACUUM INTO`）、スキーマの版の管理（`user_version`）、将来の全文検索（FTS5）まで追加の依存なしでできる。テストも Vitest（Node 24.12）でそのまま `:memory:` の DB を使える。
+- 反映: [DECISIONS/0004](DECISIONS/0004-storage-node-sqlite.md)。

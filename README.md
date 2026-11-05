@@ -32,6 +32,8 @@ npm run dev
 | [docs/STATE.md](docs/STATE.md) | 現在地・次にやること・未決事項 |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | 開発の段階（STEP 1〜8） |
 | [docs/LEARNINGS.md](docs/LEARNINGS.md) | 開発で分かったこと |
+| [docs/design/](docs/design/) | 要件の整理・設計 |
+| [docs/research/](docs/research/) | 外部の仕様の調査 |
 | [docs/DECISIONS/](docs/DECISIONS/) | 設計判断の記録 |
 | [AGENTS.md](AGENTS.md) | AI エージェント向けの作業規約 |
 

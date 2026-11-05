@@ -10,8 +10,8 @@ Game Idea Lab は、ランダムなキーワード 2 つとゲームジャンル
 1. [docs/STATE.md](docs/STATE.md) — 現在地・次にやること・未決事項。
 2. [docs/LEARNINGS.md](docs/LEARNINGS.md) の先頭の一覧 — これまでに分かったこと。同じ失敗をしない。
 3. `private/NOTES.md`（あれば）— メンテナーの環境だけの事情。git 管理外。
-4. 対象の機能に関係する [企画書（正本）](docs/spec/game-idea-lab-v0.1.md) の節。全文を毎回読まない。
-5. 関係する [設計判断](docs/DECISIONS/)。
+4. 対象の機能に関係する [企画書（正本）](docs/spec/game-idea-lab-v0.1.md) の節と、[要件の整理](docs/design/01-requirements.md) の未確定事項（D-番号）、設計（[アーキテクチャ](docs/design/02-architecture.md)・[画面](docs/design/03-screens.md)・[データと生成](docs/design/04-data-and-generation.md)）の該当する節。全文を毎回読まない。
+5. 関係する [設計判断](docs/DECISIONS/) と [調査](docs/research/)。AI の接続を触るときは [Sign in with ChatGPT の調査](docs/research/sign-in-with-chatgpt.md) を必ず読む（プレビューの仕様なので、実装の前に公式文書を読み直す）。
 
 ## 2. 公開を前提にする
 
