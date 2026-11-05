@@ -8,6 +8,7 @@ Game Idea Lab は、ランダムなキーワード 2 つとゲームジャンル
 ## 1. 作業を始めるときに読む（この順）
 
 1. [docs/STATE.md](docs/STATE.md) — 現在地・次にやること・未決事項。
+   実装のタスクは [docs/design/05-tasks.md](docs/design/05-tasks.md) の表（T-番号）。着手・完了したら表の「状態」を書き換える。
 2. [docs/LEARNINGS.md](docs/LEARNINGS.md) の先頭の一覧 — これまでに分かったこと。同じ失敗をしない。
 3. `private/NOTES.md`（あれば）— メンテナーの環境だけの事情。git 管理外。
 4. 対象の機能に関係する [企画書（正本）](docs/spec/game-idea-lab-v0.1.md) の節と、[要件の整理](docs/design/01-requirements.md) の未確定事項（D-番号）、設計（[アーキテクチャ](docs/design/02-architecture.md)・[画面](docs/design/03-screens.md)・[データと生成](docs/design/04-data-and-generation.md)）の該当する節。全文を毎回読まない。

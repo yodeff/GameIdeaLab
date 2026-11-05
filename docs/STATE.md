@@ -5,18 +5,19 @@
 
 ## 現在地
 
-- 段階: **STEP 3 設計 完了** → 次は STEP 4（MVP のタスク分解）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
+- 段階: **STEP 4 タスク分解 完了** → 次は STEP 5（抽選と A モードの実装。T-01〜T-10）。段階の一覧は [ROADMAP.md](ROADMAP.md)。
 - 動くもの: Electron の空の画面（3 つのスロットの枠だけ）。preload 経由の IPC、型検査、テスト、公開前の検査。
 - まだ無いもの: 抽選、A/B モード、AI 生成、保存、エクスポート。
 - STEP 1 の結果: [design/01-requirements.md](design/01-requirements.md)（未確定事項 D-1〜D-23 と初期値の案、リスク R-1〜R-12）。
 - STEP 2 の結果: [research/sign-in-with-chatgpt.md](research/sign-in-with-chatgpt.md)（公式仕様の確認）と [DECISIONS/0003](DECISIONS/0003-ai-connection.md)（AI の接続。採用）。
+- STEP 4 の結果: [design/05-tasks.md](design/05-tasks.md)（T-01〜T-26、依存関係、メンテナーに手を借りるところ）。タスクの状態の正本はこの表。
 - STEP 3 の結果: [design/02-architecture.md](design/02-architecture.md)（構成・IPC・生成の流れ・テスト）、[design/03-screens.md](design/03-screens.md)（画面・操作・誤りの表示）、[design/04-data-and-generation.md](design/04-data-and-generation.md)（抽選・辞書・アイデアの項目・指示文・SQLite・出力・質の評価）、[DECISIONS/0004](DECISIONS/0004-storage-node-sqlite.md)（保存は `node:sqlite`）。
 - STEP 2.5 の結果: OSS アプリとして事前の承認なしでサインイン・プラン利用・生成ができた。JSON Schema の構造化出力も使える。3 案で 25〜50 秒（[research §8](research/sign-in-with-chatgpt.md)、LEARNINGS L-5）。
 
 ## 次にやること
 
-1. STEP 4: MVP の機能を実装できるタスクに分け、依存関係を整理する（design/02〜04 を元にする）。
-2. STEP 5: 抽選と A モードの実装（辞書の 1,000 語の作成を含む）。
+1. STEP 5: T-01（core の構成）から始め、T-03（辞書づくり）を早めに並べて進める。辞書はメンテナーの抜き取りの確認が要る。
+2. STEP 5 の確認（T-10）の後に STEP 6 の画面に入る。AI の部品（T-11〜T-13）は STEP 5 と並べて進めてよい。
 
 ## メンテナーの判断待ち
 
@@ -49,6 +50,7 @@
 
 ## 最近の変更
 
+- 2026-11-05: STEP 4 MVP のタスク分解（T-01〜T-26）。
 - 2026-11-05: STEP 3 設計（アーキテクチャ・画面・データと生成）。保存は `node:sqlite` に決めた。
 - 2026-11-05: STEP 2.5 Sign in with ChatGPT の試作（`spikes/siwc-probe.mjs`）。サインイン・プラン利用・3 通りの生成を確かめた。
 - 2026-11-05: STEP 1（要件の整理）と STEP 2（Sign in with ChatGPT の公式仕様の確認、AI の接続の案）を文書にした。
