@@ -3,6 +3,14 @@ import type { DatabaseSync } from 'node:sqlite'
 
 type Migration = { version: number; sql: string }
 
+/** 版 1 の列から keywords・genres を埋める（版 2 のマイグレーションと、壊れた DB からの救出で使う） */
+export const BACKFILL_COMBINATION_SQL = `
+  UPDATE ideas SET
+    keywords = CASE WHEN keyword2 = '' THEN json_array(keyword1) ELSE json_array(keyword1, keyword2) END,
+    genres = CASE WHEN genre = '' THEN '[]' ELSE json_array(genre) END
+  WHERE keywords = '[]';
+`
+
 export const MIGRATIONS: readonly Migration[] = [
   {
     version: 1,
@@ -34,6 +42,16 @@ export const MIGRATIONS: readonly Migration[] = [
       CREATE INDEX ideas_genre ON ideas (genre);
       CREATE TABLE settings (key TEXT PRIMARY KEY, value TEXT NOT NULL);
       CREATE TABLE workspace (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER NOT NULL, value TEXT NOT NULL);
+    `
+  },
+  {
+    // 2026-11-05: スロットを可変にした（ジャンル 0〜3・キーワード 1〜5）。組み合わせは JSON の配列で持つ。
+    // 古い列（keyword1・keyword2・genre）は先頭の語を入れて残す
+    version: 2,
+    sql: `
+      ALTER TABLE ideas ADD COLUMN keywords TEXT NOT NULL DEFAULT '[]';
+      ALTER TABLE ideas ADD COLUMN genres TEXT NOT NULL DEFAULT '[]';
+      ${BACKFILL_COMBINATION_SQL}
     `
   }
 ]

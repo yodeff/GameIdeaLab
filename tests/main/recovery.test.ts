@@ -25,11 +25,11 @@ function makeDb(): string {
   const path = join(dir, 'game-idea-lab.sqlite')
   const db = openDatabase(path)
   updateSettings(db, { aiCount: 5, theme: 'dark' })
-  saveWorkspace(db, { version: 1, mode: 'ai', draw: initialDrawState(dictionaries, sequenceRng([0.3])), draft: emptyDraft('2026-11-05T00:00:00.000Z') })
+  saveWorkspace(db, { version: 2, mode: 'ai', draw: initialDrawState(dictionaries, sequenceRng([0.3])), draft: emptyDraft('2026-11-05T00:00:00.000Z') })
   for (let i = 0; i < 120; i++) {
     insertAiIdea(
       db,
-      { body: sampleIdea({ title: `案${i}`, scene: 'あ'.repeat(400) }), combination: { keyword1: '鍵', keyword2: '扉', genre: 'パズル' }, generationId: 'g', model: 'm', fidelity: 'standard' },
+      { body: sampleIdea({ title: `案${i}`, scene: 'あ'.repeat(400) }), combination: { genres: ['パズル'], keywords: ['鍵', '扉'] }, generationId: 'g', model: 'm', fidelity: 'standard' },
       `id-${i}`,
       new Date(Date.UTC(2026, 10, 5, 0, 0, i)).toISOString()
     )

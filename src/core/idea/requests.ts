@@ -1,5 +1,5 @@
 // 生成・派生の依頼（IPC の入力）の型と検査。
-import { MANUAL_MAX_LENGTH, SLOT_IDS, type Combination } from '../draw'
+import { MANUAL_MAX_LENGTH, parseCombination, type Combination } from '../draw'
 import { AI_COUNT_MAX, AI_COUNT_MIN, type Fidelity } from '../settings'
 import { isInt, isOneOf, isRecord, isString } from '../validate'
 import { DERIVE_INSTRUCTION_MAX, type DeriveOperation } from './prompts'
@@ -16,11 +16,6 @@ export type DeriveRequest = {
 }
 
 const OPERATIONS = ['original', 'gameplay', 'simpler', 'genre', 'free'] as const
-
-function parseCombination(v: unknown): Combination | null {
-  if (!isRecord(v) || !SLOT_IDS.every((s) => isString(v[s], MANUAL_MAX_LENGTH, 1))) return null
-  return { keyword1: v['keyword1'] as string, keyword2: v['keyword2'] as string, genre: v['genre'] as string }
-}
 
 export function parseGenerateRequest(v: unknown): GenerateRequest | null {
   if (!isRecord(v) || !isInt(v['count'], AI_COUNT_MIN, AI_COUNT_MAX)) return null

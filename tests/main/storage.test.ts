@@ -1,6 +1,7 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { DatabaseSync } from 'node:sqlite'
 import { afterEach, describe, expect, it } from 'vitest'
 import { initialDrawState } from '@core/draw'
 import { parseHumanIdeaInput } from '@core/idea'
@@ -8,16 +9,20 @@ import { DEFAULT_SETTINGS } from '@core/settings'
 import { emptyDraft, type Workspace } from '@core/workspace'
 import {
   BACKUP_KEEP,
+  beforeMigrationPath,
   LATEST_VERSION,
   backupIfDue,
+  getIdea,
   getSettings,
   insertHumanIdea,
+  listIdeas,
   listBackups,
   loadWorkspace,
   openDatabase,
   saveWorkspace,
   updateSettings
 } from '../../src/main/storage'
+import { MIGRATIONS } from '../../src/main/storage/migrations'
 import { sequenceRng } from '../support/rng'
 import keywords from '../../resources/dictionaries/keywords.ja.json'
 import genres from '../../resources/dictionaries/genres.ja.json'
@@ -49,6 +54,34 @@ describe('マイグレーション', () => {
     db.close()
     expect(() => openDatabase(file)).toThrow(/新しい/)
   })
+
+  it('版 1 の DB を開くと、組み合わせを配列の列に移す（ジャンル・キーワード 2 が空の案も）', () => {
+    const file = join(tempDir(), 'v1.sqlite')
+    const old = new DatabaseSync(file)
+    old.exec(MIGRATIONS[0]?.sql ?? '')
+    old.exec('PRAGMA user_version = 1')
+    const insert = old.prepare(
+      "INSERT INTO ideas (id, created_at, updated_at, source, saved, title, keyword1, keyword2, genre, body_text) VALUES (?, '2026-11-01T00:00:00.000Z', '2026-11-01T00:00:00.000Z', 'human', 1, ?, ?, ?, ?, '本文')"
+    )
+    insert.run('a', '冷蔵庫の町', '冷蔵庫', '町', '育成ゲーム')
+    insert.run('b', '鍵だけ', '鍵', '', '')
+    old.close()
+
+    const db = openDatabase(file)
+    expect(db.prepare('PRAGMA user_version').get()).toEqual({ user_version: LATEST_VERSION })
+    // 版を上げる前の写しが残り、版 1 のまま開ける
+    const copy = new DatabaseSync(beforeMigrationPath(file), { readOnly: true })
+    expect(copy.prepare('PRAGMA user_version').get()).toEqual({ user_version: 1 })
+    expect(copy.prepare('SELECT count(*) AS n FROM ideas').get()).toEqual({ n: 2 })
+    copy.close()
+    expect(getIdea(db, 'a')?.combination).toEqual({ genres: ['育成ゲーム'], keywords: ['冷蔵庫', '町'] })
+    expect(getIdea(db, 'b')?.combination).toEqual({ genres: [], keywords: ['鍵'] })
+    const q = { scope: 'saved' as const, text: '', genre: null, favoritesOnly: false, limit: 10 }
+    expect(listIdeas(db, { ...q, genre: '育成ゲーム' }).ideas.map((i) => i.id)).toEqual(['a'])
+    expect(listIdeas(db, { ...q, text: '町' }).ideas.map((i) => i.id)).toEqual(['a'])
+    expect(listIdeas(db, q).genres).toEqual(['育成ゲーム'])
+    db.close()
+  })
 })
 
 describe('設定', () => {
@@ -70,7 +103,7 @@ describe('作業状態', () => {
     const db = openDatabase(':memory:')
     expect(loadWorkspace(db)).toBeNull()
     const ws: Workspace = {
-      version: 1,
+      version: 2,
       mode: 'human',
       draw: initialDrawState(dictionaries, sequenceRng([0.1, 0.5, 0.9])),
       draft: { ...emptyDraft('2026-11-05T00:00:00.000Z'), body: '書きかけ' }
@@ -93,7 +126,7 @@ describe('A モードの案', () => {
     const input = parseHumanIdeaInput({
       title: '',
       body: '冷蔵庫で町を育てる\n詳細',
-      combination: { keyword1: '冷蔵庫', keyword2: '町', genre: '育成ゲーム' }
+      combination: { genres: ['育成ゲーム'], keywords: ['冷蔵庫', '町'] }
     })
     if (!input) throw new Error('入力が不正')
     const record = insertHumanIdea(db, input, 'id-1', '2026-11-05T00:00:00.000Z')
@@ -105,7 +138,7 @@ describe('A モードの案', () => {
       title: '冷蔵庫で町を育てる',
       bodyText: '冷蔵庫で町を育てる\n詳細',
       body: null,
-      combination: { keyword1: '冷蔵庫', keyword2: '町', genre: '育成ゲーム' }
+      combination: { genres: ['育成ゲーム'], keywords: ['冷蔵庫', '町'] }
     })
   })
 })

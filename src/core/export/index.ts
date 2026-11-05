@@ -1,2 +1,2 @@
-export { formatCombination } from './combination'
+export { formatCombination, formatGenres, formatKeywords } from './combination'
 export { ideaToMarkdown, ideasToMarkdown } from './markdown'

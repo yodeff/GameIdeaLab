@@ -66,7 +66,7 @@ export async function runIdeaEvaluation(opts: {
         newId: randomUUID,
         now: () => new Date()
       })
-      jobs.generate({ combination: { keyword1: c.keyword1, keyword2: c.keyword2, genre: c.genre }, count: 3, fidelity: settings.aiFidelity })
+      jobs.generate({ combination: { genres: c.genres, keywords: c.keywords }, count: 3, fidelity: settings.aiFidelity })
     })
     const seconds = Math.round((Date.now() - started) / 1000)
     all.push(...ideas)

@@ -81,6 +81,8 @@ type IdeaRow = {
   keyword1: string
   keyword2: string
   genre: string
+  keywords: string
+  genres: string
   body_text: string
   body_json: string | null
   direction: string | null
@@ -93,6 +95,27 @@ type IdeaRow = {
   draw_context: string | null
 }
 
+/** 保存した組み合わせを読む。JSON が壊れていても古い列から作る */
+function parseStoredCombination(row: IdeaRow): Combination {
+  const list = (text: string): string[] => {
+    try {
+      const v = JSON.parse(text) as unknown
+      return Array.isArray(v) ? v.filter((w): w is string => typeof w === 'string' && w !== '') : []
+    } catch {
+      return []
+    }
+  }
+  const keywords = list(row.keywords)
+  const genres = list(row.genres)
+  if (keywords.length > 0) return { genres, keywords }
+  return { genres: row.genre ? [row.genre] : [], keywords: [row.keyword1, row.keyword2].filter(Boolean) }
+}
+
+/** 組み合わせを列の値にする（JSON と、検索や古い版のための先頭の語） */
+function combinationColumns(c: Combination): [string, string, string, string, string] {
+  return [c.keywords[0] ?? '', c.keywords[1] ?? '', c.genres[0] ?? '', JSON.stringify(c.keywords), JSON.stringify(c.genres)]
+}
+
 function toRecord(row: IdeaRow): IdeaRecord {
   return {
     id: row.id,
@@ -103,7 +126,7 @@ function toRecord(row: IdeaRow): IdeaRecord {
     favorite: row.favorite === 1,
     title: row.title,
     concept: row.concept,
-    combination: { keyword1: row.keyword1, keyword2: row.keyword2, genre: row.genre },
+    combination: parseStoredCombination(row),
     bodyText: row.body_text,
     body: row.body_json ? (JSON.parse(row.body_json) as IdeaRecord['body']) : null,
     direction: row.direction as IdeaRecord['direction'],
@@ -125,9 +148,9 @@ export function getIdea(db: DatabaseSync, id: string): IdeaRecord | null {
 /** A モードの案を保存済みとして追加する（T-09） */
 export function insertHumanIdea(db: DatabaseSync, input: HumanIdeaInput, id: string, now: string): IdeaRecord {
   db.prepare(
-    `INSERT INTO ideas (id, created_at, updated_at, source, saved, title, keyword1, keyword2, genre, body_text)
-     VALUES (?, ?, ?, 'human', 1, ?, ?, ?, ?, ?)`
-  ).run(id, now, now, input.title, input.combination.keyword1, input.combination.keyword2, input.combination.genre, input.body)
+    `INSERT INTO ideas (id, created_at, updated_at, source, saved, title, keyword1, keyword2, genre, keywords, genres, body_text)
+     VALUES (?, ?, ?, 'human', 1, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(id, now, now, input.title, ...combinationColumns(input.combination), input.body)
   const record = getIdea(db, id)
   if (!record) throw new Error('保存した案を読み出せない')
   return record
@@ -147,18 +170,16 @@ export type AiIdeaInput = {
 export function insertAiIdea(db: DatabaseSync, input: AiIdeaInput, id: string, now: string): IdeaRecord {
   const { body, combination: c } = input
   db.prepare(
-    `INSERT INTO ideas (id, created_at, updated_at, source, saved, title, concept, keyword1, keyword2, genre,
+    `INSERT INTO ideas (id, created_at, updated_at, source, saved, title, concept, keyword1, keyword2, genre, keywords, genres,
        body_text, body_json, direction, parent_id, derivation, generation_id, model, fidelity)
-     VALUES (?, ?, ?, 'ai', 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+     VALUES (?, ?, ?, 'ai', 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     now,
     now,
     body.title,
     body.concept,
-    c.keyword1,
-    c.keyword2,
-    c.genre,
+    ...combinationColumns(c),
     bodyToText(body),
     JSON.stringify(body),
     body.direction,
@@ -198,11 +219,11 @@ export function listIdeas(db: DatabaseSync, q: IdeaListQuery): IdeaListResult {
   const params: (string | number)[] = [q.scope === 'saved' ? 1 : 0]
   if (q.favoritesOnly) where.push('favorite = 1')
   if (q.genre !== null) {
-    where.push('genre = ?')
+    where.push('EXISTS (SELECT 1 FROM json_each(ideas.genres) WHERE value = ?)')
     params.push(q.genre)
   }
   if (q.text !== '') {
-    const columns = ['title', 'keyword1', 'keyword2', 'genre', 'body_text', 'memo']
+    const columns = ['title', 'keywords', 'genres', 'body_text', 'memo']
     where.push(`(${columns.map((c) => `${c} LIKE ? ESCAPE '!'`).join(' OR ')})`)
     params.push(...columns.map(() => likePattern(q.text)))
   }
@@ -212,7 +233,9 @@ export function listIdeas(db: DatabaseSync, q: IdeaListQuery): IdeaListResult {
     .all(...params, q.limit) as IdeaRow[]
   const total = (db.prepare(`SELECT count(*) AS n FROM ideas WHERE ${clause}`).get(...params) as { n: number }).n
   const genres = (
-    db.prepare('SELECT DISTINCT genre FROM ideas WHERE saved = ? ORDER BY genre').all(q.scope === 'saved' ? 1 : 0) as { genre: string }[]
+    db
+      .prepare('SELECT DISTINCT j.value AS genre FROM ideas, json_each(ideas.genres) AS j WHERE ideas.saved = ? ORDER BY j.value')
+      .all(q.scope === 'saved' ? 1 : 0) as { genre: string }[]
   ).map((r) => r.genre)
   return { ideas: rows.map(toRecord), total, genres }
 }

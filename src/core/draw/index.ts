@@ -1,8 +1,10 @@
-export type { Combination, Dictionaries, DrawHistory, DrawState, SlotConfig, SlotId, SlotState } from './draw'
+export type { Combination, Dictionaries, DrawState, Slot, SlotKind } from './draw'
 export {
   HISTORY_LIMIT,
   MANUAL_MAX_LENGTH,
-  SLOT_IDS,
+  SLOT_KINDS,
+  SLOT_LIMITS,
+  addSlot,
   candidateCategories,
   combinationOf,
   dictionaryFor,
@@ -10,7 +12,11 @@ export {
   drawSlot,
   drawWord,
   initialDrawState,
+  removeSlot,
+  sameCombination,
   setCategories,
   setLocked,
-  setManualValue
+  setManualValue,
+  slotsOf
 } from './draw'
+export { parseCombination } from './combination'

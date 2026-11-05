@@ -1,21 +1,20 @@
 // A モード（design/03 §2.3）。下書きは作業状態として自動保存する（D-9・D-10）
 import { useState } from 'react'
-import { combinationOf, type Combination } from '@core/draw'
+import { combinationOf, sameCombination } from '@core/draw'
 import { formatCombination } from '@core/export'
 import { IDEA_TITLE_MAX } from '@core/idea'
 import { DRAFT_BODY_MAX, emptyDraft } from '@core/workspace'
 import { api } from '../api'
 import { useActions, useAppState } from '../app/AppContext'
 
-const same = (a: Combination, b: Combination) => a.keyword1 === b.keyword1 && a.keyword2 === b.keyword2 && a.genre === b.genre
 
 export function HumanIdeaPanel() {
   const { workspace } = useAppState()
   const actions = useActions()
   const { draft } = workspace
-  const current = combinationOf(workspace.draw.slots)
+  const current = combinationOf(workspace.draw)
   const started = draft.startedWith
-  const changed = started !== null && !same(started, current)
+  const changed = started !== null && !sameCombination(started, current)
   const [useStarted, setUseStarted] = useState(false)
   const [saving, setSaving] = useState(false)
 

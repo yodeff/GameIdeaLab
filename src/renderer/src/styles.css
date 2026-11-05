@@ -202,12 +202,59 @@ kbd {
 
 .slots {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 12px;
+}
+
+.slot.is-genre .slot-label {
+  color: var(--accent);
+}
+
+/* ジャンルが 0 のときの札 */
+.slot-free {
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 16px;
+  border-style: dashed;
+  box-shadow: none;
+  background: transparent;
+  text-align: center;
+}
+
+.slot-free-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.slot-free .hint {
+  margin: 0 0 8px;
+}
+
+.slot-add {
+  font-size: 13px;
+}
+
+.slot-add-count {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.slot-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.slot-remove {
+  color: var(--muted);
 }
 
 .slot {
   position: relative;
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   background: var(--surface);
@@ -226,13 +273,23 @@ kbd {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 4px;
   padding: 10px 12px 0 16px;
 }
 
 .slot-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
+}
+
+/* container-type で重なりの文脈ができるので、カテゴリの選択を開いたスロットを前に出す */
+.slot:has(.category-popover) {
+  z-index: 5;
 }
 
 .slot-value-area {
@@ -245,7 +302,7 @@ kbd {
 
 .slot-value {
   margin: 0;
-  font-size: clamp(22px, 2.6vw, 34px);
+  font-size: clamp(18px, 12cqi, 34px);
   font-weight: 700;
   text-align: center;
   line-height: 1.25;
@@ -292,6 +349,13 @@ kbd {
 .slot-actions button:hover {
   color: var(--text);
   background: var(--surface-2);
+}
+
+/* 狭いスロットでは操作の文字を隠してアイコンだけにする */
+@container (max-width: 270px) {
+  .slot-action-label {
+    display: none;
+  }
 }
 
 .slot-actions button.is-active {
@@ -360,10 +424,24 @@ kbd {
 /* --- 回す --------------------------------------------------------------- */
 
 .draw-bar {
-  display: flex;
-  justify-content: center;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
   gap: 12px;
+}
+
+.draw-bar-center {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.draw-bar > .slot-add--genre {
+  justify-self: start;
+}
+
+.draw-bar > .slot-add--keyword {
+  justify-self: end;
 }
 
 .draw-button {

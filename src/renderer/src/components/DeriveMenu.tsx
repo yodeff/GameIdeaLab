@@ -7,16 +7,16 @@ import { ChevronIcon } from './icons'
 
 const genres = dictionaries.genre.categories.flatMap((c) => c.words)
 
-function otherGenre(current: string): string {
-  const others = genres.filter((g) => g !== current)
-  return others[Math.floor(Math.random() * others.length)] ?? current
+function otherGenre(current: readonly string[]): string {
+  const others = genres.filter((g) => !current.includes(g))
+  return others[Math.floor(Math.random() * others.length)] ?? genres[0] ?? ''
 }
 
 export function DeriveMenu({ idea, disabled, onStart }: { idea: IdeaRecord; disabled: boolean; onStart?: () => void }) {
   const ai = useAiActions()
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'menu' | 'genre' | 'free'>('menu')
-  const [genre, setGenre] = useState(() => otherGenre(idea.combination.genre))
+  const [genre, setGenre] = useState(() => otherGenre(idea.combination.genres))
   const [instruction, setInstruction] = useState('')
   const root = useRef<HTMLDivElement>(null)
 
@@ -66,7 +66,7 @@ export function DeriveMenu({ idea, disabled, onStart }: { idea: IdeaRecord; disa
               </label>
               <select id={`genre-${idea.id}`} value={genre} onChange={(e) => setGenre(e.target.value)}>
                 {genres
-                  .filter((g) => g !== idea.combination.genre)
+                  .filter((g) => !idea.combination.genres.includes(g))
                   .map((g) => (
                     <option key={g}>{g}</option>
                   ))}

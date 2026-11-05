@@ -6,7 +6,7 @@ import { sampleIdea } from '../support/ideas'
 import { scriptedClient, setupMain } from '../support/main'
 
 const setup = () => setupMain(scriptedClient([]).client)
-const combination = { keyword1: '鍵', keyword2: '扉', genre: 'パズル' }
+const combination = { genres: ['パズル'], keywords: ['鍵', '扉'] }
 
 describe('IPC のハンドラー', () => {
   it('すべてのチャンネルにハンドラーがある', () => {
@@ -27,7 +27,9 @@ describe('IPC のハンドラー', () => {
 
   it.each([
     [IpcChannel.aiGenerate, { combination, count: 11, fidelity: 'standard' }],
-    [IpcChannel.aiGenerate, { combination: { ...combination, genre: '' }, count: 3, fidelity: 'standard' }],
+    [IpcChannel.aiGenerate, { combination: { ...combination, genres: [''] }, count: 3, fidelity: 'standard' }],
+    [IpcChannel.aiGenerate, { combination: { ...combination, keywords: [] }, count: 3, fidelity: 'standard' }],
+    [IpcChannel.aiGenerate, { combination: { genres: ['a', 'b', 'c', 'd'], keywords: ['k'] }, count: 3, fidelity: 'standard' }],
     [IpcChannel.aiDerive, { parentId: 'x', operation: 'genre' }],
     [IpcChannel.aiDerive, { parentId: 'x', operation: 'free', instruction: 'あ'.repeat(501) }],
     [IpcChannel.authSetApiKey, 'not-a-key']

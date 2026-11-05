@@ -1,5 +1,6 @@
 // ブラウザで画面だけを開いたときの、アイデアの保存（localStorage）。SQLite と同じ規則で動かす
 // （絞り込みは matchesQuery、更新は applyIdeaPatch。テストで SQLite と同じ結果になることを確かめている）。
+import { parseCombination } from '@core/draw'
 import { ideasToMarkdown } from '@core/export'
 import { applyIdeaPatch, matchesQuery, type IdeaRecord } from '@core/idea'
 import type { GameIdeaLabApi } from '@shared/ipc'
@@ -7,10 +8,15 @@ import type { GameIdeaLabApi } from '@shared/ipc'
 const KEY = 'gil.ideas'
 const HISTORY_KEEP = 200
 
+/** 読み出す。組み合わせは古い形（keyword1・keyword2・genre）も今の形に直し、読めない案は落とす */
 export function readIdeas(): IdeaRecord[] {
   try {
     const v = JSON.parse(localStorage.getItem(KEY) ?? '[]') as unknown
-    return Array.isArray(v) ? (v as IdeaRecord[]) : []
+    if (!Array.isArray(v)) return []
+    return (v as IdeaRecord[]).flatMap((i) => {
+      const combination = parseCombination(i?.combination)
+      return combination ? [{ ...i, combination }] : []
+    })
   } catch {
     return []
   }
@@ -36,7 +42,7 @@ export function createBrowserIdeaApi(): IdeaApi {
       const all = readIdeas()
       const scoped = all.filter((i) => i.saved === (q.scope === 'saved'))
       const hits = all.filter((i) => matchesQuery(i, q)).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-      return { ideas: hits.slice(0, q.limit), total: hits.length, genres: [...new Set(scoped.map((i) => i.combination.genre))].sort() }
+      return { ideas: hits.slice(0, q.limit), total: hits.length, genres: [...new Set(scoped.flatMap((i) => i.combination.genres))].sort() }
     },
     updateIdea: async (id, patch) => {
       const all = readIdeas()

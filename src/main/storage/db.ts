@@ -1,6 +1,6 @@
 import { existsSync, renameSync } from 'node:fs'
 import { DatabaseSync } from 'node:sqlite'
-import { migrate } from './migrations'
+import { BACKFILL_COMBINATION_SQL, LATEST_VERSION, migrate } from './migrations'
 
 /** ほかの接続が書いている間に待つ時間（すぐに「使用中」で失敗しないように） */
 const BUSY_TIMEOUT_MS = 5_000
@@ -12,12 +12,25 @@ export function openDatabase(path: string): DatabaseSync {
     db.exec(`PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS}`)
     if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL')
     db.exec('PRAGMA foreign_keys = ON')
+    if (path !== ':memory:') copyBeforeMigration(db, path)
     migrate(db)
   } catch (e) {
     db.close() // 開いたままだとファイルを握り続ける
     throw e
   }
   return db
+}
+
+/** 版を上げる前のファイルの写し（版 1 → 2 なら `<DB>.before-v2`）。既にあれば作らない */
+export const beforeMigrationPath = (path: string) => `${path}.before-v${LATEST_VERSION}`
+
+/** 既存の DB の版を上げる直前に、1 回だけ写しを取る（新しい DB や最新の DB では作らない） */
+function copyBeforeMigration(db: DatabaseSync, path: string): void {
+  const row = db.prepare('PRAGMA user_version').get() as { user_version?: number } | undefined
+  const current = row?.user_version ?? 0
+  const target = beforeMigrationPath(path)
+  if (current === 0 || current >= LATEST_VERSION || existsSync(target)) return
+  db.prepare('VACUUM INTO ?').run(target)
 }
 
 /** 読み取り専用で開く（開発用の道具が設定だけを読むときなど。書かない・マイグレーションしない） */
@@ -83,7 +96,9 @@ export function recoverDatabase(path: string, now: Date): RecoveryReport {
     }
     // 案は rowid ごとに読む。壊れたページにある行だけを諦める
     const maxRow = (safeAll(old, 'SELECT max(rowid) AS m FROM ideas')[0] as { m: number | null } | undefined)?.m ?? 0
-    const columns = (fresh.prepare('PRAGMA table_info(ideas)').all() as { name: string }[]).map((c) => c.name)
+    const freshColumns = (fresh.prepare('PRAGMA table_info(ideas)').all() as { name: string }[]).map((c) => c.name)
+    const oldColumns = new Set((safeAll(old, 'PRAGMA table_info(ideas)') as { name: string }[]).map((c) => c.name))
+    const columns = freshColumns.filter((c) => oldColumns.has(c))
     const insert = fresh.prepare(`INSERT OR IGNORE INTO ideas (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`)
     const select = old.prepare(`SELECT ${columns.join(', ')} FROM ideas WHERE rowid = ?`)
     fresh.exec('PRAGMA foreign_keys = OFF') // 親が欠けた派生案も残す
@@ -97,6 +112,7 @@ export function recoverDatabase(path: string, now: Date): RecoveryReport {
         // この行は読めない
       }
     }
+    fresh.exec(BACKFILL_COMBINATION_SQL) // 古い版の DB から移した行の組み合わせを埋める
     fresh.exec('PRAGMA foreign_keys = ON')
   } catch {
     // 古い DB がまったく開けなくても、新しい DB で起動できればよい

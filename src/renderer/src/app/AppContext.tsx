@@ -1,14 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react'
 import {
-  SLOT_IDS,
+  addSlot,
   combinationOf,
   drawAll,
   drawSlot,
   initialDrawState,
+  removeSlot,
   setCategories,
   setLocked,
   setManualValue,
-  type SlotId
+  type SlotKind
 } from '@core/draw'
 import { formatCombination } from '@core/export'
 import type { Settings } from '@core/settings'
@@ -22,10 +23,12 @@ const rng = Math.random
 
 type Actions = {
   drawAll: () => void
-  drawSlot: (slot: SlotId) => void
-  toggleLock: (slot: SlotId) => void
-  setManual: (slot: SlotId, value: string) => void
-  setCategories: (slot: SlotId, categoryIds: string[]) => void
+  drawSlot: (id: string) => void
+  toggleLock: (id: string) => void
+  setManual: (id: string, value: string) => void
+  setCategories: (id: string, categoryIds: string[]) => void
+  addSlot: (kind: SlotKind) => void
+  removeSlot: (id: string) => void
   copyCombination: () => void
   setMode: (mode: Mode) => void
   setDraft: (draft: Draft) => void
@@ -39,7 +42,7 @@ const StateContext = createContext<ReadyState | null>(null)
 const ActionsContext = createContext<Actions | null>(null)
 
 function freshWorkspace(): Workspace {
-  return { version: 1, mode: 'human', draw: initialDrawState(dictionaries, rng), draft: emptyDraft(new Date().toISOString()) }
+  return { version: 2, mode: 'human', draw: initialDrawState(dictionaries, rng), draft: emptyDraft(new Date().toISOString()) }
 }
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -83,22 +86,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => ({
       drawAll: () =>
         withDraw((s) => {
-          const rolled = SLOT_IDS.filter((slot) => !s.workspace.draw.slots[slot].locked)
+          const rolled = s.workspace.draw.slots.filter((slot) => !slot.locked).map((slot) => slot.id)
           dispatch({ type: 'drew', draw: drawAll(s.workspace.draw, dictionaries, rng), rolled })
         }),
-      drawSlot: (slot) =>
-        withDraw((s) => dispatch({ type: 'drew', draw: drawSlot(s.workspace.draw, slot, dictionaries, rng), rolled: [slot] })),
-      toggleLock: (slot) =>
-        withDraw((s) =>
-          dispatch({ type: 'drawChanged', draw: setLocked(s.workspace.draw, slot, !s.workspace.draw.slots[slot].locked) })
-        ),
-      setManual: (slot, value) =>
-        withDraw((s) => dispatch({ type: 'drawChanged', draw: setManualValue(s.workspace.draw, slot, value) })),
-      setCategories: (slot, ids) =>
-        withDraw((s) => dispatch({ type: 'drawChanged', draw: setCategories(s.workspace.draw, slot, ids) })),
+      drawSlot: (id) => withDraw((s) => dispatch({ type: 'drew', draw: drawSlot(s.workspace.draw, id, dictionaries, rng), rolled: [id] })),
+      toggleLock: (id) =>
+        withDraw((s) => {
+          const slot = s.workspace.draw.slots.find((x) => x.id === id)
+          if (slot) dispatch({ type: 'drawChanged', draw: setLocked(s.workspace.draw, id, !slot.locked) })
+        }),
+      setManual: (id, value) => withDraw((s) => dispatch({ type: 'drawChanged', draw: setManualValue(s.workspace.draw, id, value) })),
+      setCategories: (id, ids) => withDraw((s) => dispatch({ type: 'drawChanged', draw: setCategories(s.workspace.draw, id, ids) })),
+      addSlot: (kind) =>
+        withDraw((s) => {
+          const draw = addSlot(s.workspace.draw, kind, dictionaries, rng)
+          const added = draw.slots.find((x) => !s.workspace.draw.slots.some((y) => y.id === x.id))
+          dispatch({ type: 'drew', draw, rolled: added ? [added.id] : [] })
+        }),
+      removeSlot: (id) => withDraw((s) => dispatch({ type: 'drawChanged', draw: removeSlot(s.workspace.draw, id) })),
       copyCombination: () =>
         withDraw((s) => {
-          const text = formatCombination(combinationOf(s.workspace.draw.slots))
+          const text = formatCombination(combinationOf(s.workspace.draw))
           navigator.clipboard.writeText(text).then(
             () => dispatch({ type: 'toast', message: `コピーしました: ${text}` }),
             () => dispatch({ type: 'toast', message: 'コピーできませんでした' })

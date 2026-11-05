@@ -9,7 +9,7 @@ import type { IdeaModelClient } from './ai/connection'
 import { GenerationJobs } from './ai/jobs'
 import { openDatabase } from './storage'
 
-const COMBINATION = { keyword1: '自動販売機', keyword2: '寄生', genre: '経営シミュレーション' }
+const COMBINATION = { genres: ['経営シミュレーション'], keywords: ['自動販売機', '寄生'] }
 
 export async function runModelBench(opts: {
   projectDir: string
@@ -63,7 +63,7 @@ export async function runModelBench(opts: {
     [
       `# モデルごとの速さ ${stamp}`,
       '',
-      `- 組み合わせ: ${COMBINATION.keyword1} × ${COMBINATION.keyword2} × ${COMBINATION.genre}、1 案、忠実度 ${opts.settings.aiFidelity}`,
+      `- 組み合わせ: ${COMBINATION.genres.join(' × ')} × ${COMBINATION.keywords.join(' × ')}、1 案、忠実度 ${opts.settings.aiFidelity}`,
       '- 1 回ずつの計測。混み具合でぶれる',
       '',
       '| モデル | 考える深さ | 案が届くまで（秒） | 全体（秒） | 結果 |',

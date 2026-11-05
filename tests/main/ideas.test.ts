@@ -19,7 +19,7 @@ function seed() {
   const db = openDatabase(':memory:')
   const human = insertHumanIdea(
     db,
-    { title: '冷蔵庫の町', body: '冷やすほど町が静かになる 100%_ジョーク', combination: { keyword1: '冷蔵庫', keyword2: '町', genre: '育成ゲーム' } },
+    { title: '冷蔵庫の町', body: '冷やすほど町が静かになる 100%_ジョーク', combination: { genres: ['育成ゲーム'], keywords: ['冷蔵庫', '町'] } },
     'h1',
     ts(1)
   )
@@ -28,7 +28,7 @@ function seed() {
       db,
       {
         body: sampleIdea({ title }),
-        combination: { keyword1: '鍵', keyword2: '扉', genre },
+        combination: { genres: [genre], keywords: ['鍵', '扉'] },
         generationId,
         model: 'm',
         fidelity: 'standard',

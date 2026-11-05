@@ -39,7 +39,7 @@ export const IDEA_ITEM_SCHEMA = {
     core_loop: text('遊びの流れ。動詞 3〜4 個をつないだ 1 文と、1 周にかかるおよその時間'),
     core_choice: text('悩みどころ。「A を取れば X が増えるが、Y を失う」の形の具体的な 2 択'),
     fun_core: text('気持ちいい瞬間。何をした瞬間に、画面で何が起きるか。感情の言葉は最後に 1 つまで'),
-    keyword_mechanics: text('キーワードの使い方。2 つのキーワードが、それぞれどのルールや操作になっているか'),
+    keyword_mechanics: text('キーワードの使い方。それぞれのキーワードが、どのルールや操作になっているか'),
     features: optionalText('特徴的なシステム（無ければ null）'),
     challenges: optionalText('予想される課題（無ければ null）'),
     prototype: optionalText('試作のイメージ。まず作って確かめる場面と、どこを磨けば化けるか（無ければ null）')

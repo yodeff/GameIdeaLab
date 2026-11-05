@@ -5,7 +5,7 @@ import { HISTORY_KEEP, getIdea, insertAiIdea, pruneHistory } from '../../src/mai
 import { sampleIdea } from '../support/ideas'
 import { chunk, perRequestClient, setupMain } from '../support/main'
 
-const combination = { keyword1: '自動販売機', keyword2: '寄生', genre: '経営シミュレーション' }
+const combination = { genres: ['経営シミュレーション'], keywords: ['自動販売機', '寄生'] }
 const one = (title: string, direction: '王道' | '変化球' | '実験的' = '王道') =>
   chunk(JSON.stringify({ ideas: [sampleIdea({ title, direction })] }))
 const directionOf = (input: string) => /方向は「(.+?)」/.exec(input)?.[1] as '王道' | '変化球' | '実験的'
@@ -26,7 +26,7 @@ describe('生成のジョブ（1 依頼 1 案を並べて走らせる）', () =>
     const ideas = m.events.flatMap((e) => (e.type === 'idea' ? [e.idea] : []))
     expect(ideas[0]).toMatchObject({ saved: false, source: 'ai', generationId: jobId, combination, fidelity: 'strict', model: 'gpt-6.1-sol' })
     expect(getIdea(m.db, ideas[1]?.id ?? '')).not.toBeNull()
-    expect(requests[0]?.instructions).toContain('両方を')
+    expect(requests[0]?.instructions).toContain('すべてのキーワードを')
     expect(requests[0]?.textFormat).toMatchObject({ type: 'json_schema', strict: true })
   })
 
@@ -106,7 +106,7 @@ describe('生成のジョブ（1 依頼 1 案を並べて走らせる）', () =>
     const idea = m.events.flatMap((e) => (e.type === 'idea' ? [e.idea] : []))[0]
     expect(requests).toHaveLength(1)
     expect(idea).toMatchObject({ parentId: 'parent-1', derivation: '別のジャンルで', title: 'パズル版', fidelity: 'free' })
-    expect(idea?.combination.genre).toBe('パズル')
+    expect(idea?.combination.genres).toEqual(['パズル'])
     expect(getIdea(m.db, 'parent-1')?.title).toBe('寄生自販機チェーン')
     expect(requests[0]?.input).toContain('元の案')
   })

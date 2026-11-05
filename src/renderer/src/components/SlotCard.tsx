@@ -1,18 +1,20 @@
 // 1 つのスロット（design/03 §2.2・§2.6）
 import { useEffect, useRef, useState } from 'react'
 import type { KeywordDictionary } from '@core/dictionary'
-import { MANUAL_MAX_LENGTH, type SlotConfig, type SlotState } from '@core/draw'
+import { MANUAL_MAX_LENGTH, type Slot } from '@core/draw'
 import { CategoryPicker } from './CategoryPicker'
-import { EditIcon, LockIcon, RerollIcon, UnlockIcon } from './icons'
+import { CloseIcon, EditIcon, LockIcon, RerollIcon, UnlockIcon } from './icons'
 
 type Props = {
   label: string
-  shortcut: string
+  /** 引き直しのキー（1〜9）。10 個目以降は無し */
+  shortcut: string | null
   index: number
   dictionary: KeywordDictionary
-  state: SlotState
-  config: SlotConfig
+  slot: Slot
   roll: number
+  /** 外せないとき（下限）は undefined */
+  onRemove?: (() => void) | undefined
   onReroll: () => void
   onToggleLock: () => void
   onManual: (value: string) => void
@@ -75,7 +77,7 @@ function useRollingText(value: string, roll: number, index: number, dictionary: 
 }
 
 export function SlotCard(props: Props) {
-  const { label, shortcut, index, dictionary, state, config, roll } = props
+  const { label, shortcut, index, dictionary, slot: state, roll } = props
   const [shown, rolling] = useRollingText(state.value, roll, index, dictionary)
   const [editing, setEditing] = useState(false)
   const [input, setInput] = useState('')
@@ -90,10 +92,17 @@ export function SlotCard(props: Props) {
   }
 
   return (
-    <section className={`slot${state.locked ? ' is-locked' : ''}`} aria-label={label}>
+    <section className={`slot is-${state.kind}${state.locked ? ' is-locked' : ''}`} aria-label={label}>
       <header className="slot-header">
         <span className="slot-label">{label}</span>
-        <CategoryPicker dictionary={dictionary} selected={config.categoryIds} onChange={props.onCategories} />
+        <span className="slot-header-actions">
+          <CategoryPicker dictionary={dictionary} selected={state.categoryIds} onChange={props.onCategories} />
+          {props.onRemove && (
+            <button type="button" className="ghost icon-only slot-remove" onClick={props.onRemove} aria-label={`${label}を外す`} title="このスロットを外す">
+              <CloseIcon width={14} height={14} />
+            </button>
+          )}
+        </span>
       </header>
 
       <div className="slot-value-area">
@@ -120,23 +129,29 @@ export function SlotCard(props: Props) {
       </div>
 
       <footer className="slot-actions">
-        <button type="button" onClick={props.onReroll} title={`このスロットだけ引き直す（${shortcut}）`}>
+        <button
+          type="button"
+          onClick={props.onReroll}
+          aria-label="引き直す"
+          title={shortcut ? `このスロットだけ引き直す（${shortcut}）` : 'このスロットだけ引き直す'}
+        >
           <RerollIcon />
-          引き直す
+          <span className="slot-action-label">引き直す</span>
         </button>
         <button
           type="button"
           className={state.locked ? 'is-active' : ''}
           aria-pressed={state.locked}
+          aria-label="固定"
           onClick={props.onToggleLock}
-          title={`一括抽選で変えない（Shift+${shortcut}）`}
+          title={shortcut ? `一括抽選で変えない（Shift+${shortcut}）` : '一括抽選で変えない'}
         >
           {state.locked ? <LockIcon /> : <UnlockIcon />}
-          {state.locked ? '固定中' : '固定'}
+          <span className="slot-action-label">{state.locked ? '固定中' : '固定'}</span>
         </button>
-        <button type="button" onClick={startEdit} title="自分で入力する（入力すると固定）">
+        <button type="button" onClick={startEdit} aria-label="入力" title="自分で入力する（入力すると固定）">
           <EditIcon />
-          入力
+          <span className="slot-action-label">入力</span>
         </button>
       </footer>
     </section>

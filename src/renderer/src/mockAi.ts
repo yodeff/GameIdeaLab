@@ -27,20 +27,22 @@ export const mockAiEnabled = mockParam !== null
 const failWith = AI_ERROR_KINDS.find((k) => k === mockParam) as AiErrorKind | undefined
 
 function sample(direction: GameIdeaBody['direction'], c: Combination, n: number): GameIdeaBody {
+  const [k1 = '', k2 = k1] = c.keywords
+  const genre = c.genres.join('×') || 'ゲーム'
   return {
     direction,
-    title: `${c.keyword1}と${c.keyword2}の${direction}案 ${n}`,
-    problem: `${c.genre}で${c.keyword1}を扱うと、置くだけの作業になりやすい。`,
-    catch_copy: `${c.keyword1}で${c.keyword2}を制せ。`,
-    concept: `${c.keyword1}が${c.keyword2}を通じて資源になる${c.genre}。`,
-    scene: `画面の左に${c.keyword1}が 5 つ並ぶ。プレイヤーが 1 つを右へ動かすと、${c.keyword2}のゲージが 3 目盛り伸びる。`,
+    title: `${k1}と${k2}の${direction}案 ${n}`,
+    problem: `${genre}で${k1}を扱うと、置くだけの作業になりやすい。`,
+    catch_copy: `${k1}で${k2}を制せ。`,
+    concept: `${k1}が${k2}を通じて資源になる${genre}。`,
+    scene: `画面の左に${k1}が 5 つ並ぶ。プレイヤーが 1 つを右へ動かすと、${k2}のゲージが 3 目盛り伸びる。`,
     screen: '（偽の AI の出力です）真上から見た盤面。左に手札、右に得点のゲージが見える。',
     player_actions: '配置する・交換する・待つ、の 3 つから毎ターン 1 つを選ぶ。',
     goal: '30 ターン以内に目標の数値に届かせる。',
     core_choice: '今すぐ交換して確実に得るか、待って倍にするか。',
     core_loop: '状況を読む → 行動を選ぶ → 結果で次の選択肢が変わる。',
     fun_core: '短期の得と長期の得のどちらを取るかの判断。',
-    keyword_mechanics: `${c.keyword1}が量、${c.keyword2}が速さを決める。`,
+    keyword_mechanics: `${k1}が量、${k2}が速さを決める。`,
     features: n % 2 === 0 ? '盤面の端から状況が変わる。' : null,
     challenges: null,
     prototype: null
@@ -140,7 +142,7 @@ export function createMockAi(): AiApi {
     derive: async (req) => {
       const parent = ideas.find((i) => i.id === req.parentId)
       if (!parent?.body) return { ok: false, error: aiErrorInfo('config-error', 'parent') }
-      const combination = req.genre ? { ...parent.combination, genre: req.genre } : parent.combination
+      const combination = req.genre ? { ...parent.combination, genres: [req.genre] } : parent.combination
       return run(combination, [parent.body.direction], { parentId: parent.id, derivation: DERIVE_LABELS[req.operation] })
     },
     cancelGeneration: async (jobId) => {

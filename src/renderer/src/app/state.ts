@@ -1,5 +1,5 @@
 // 画面全体の状態（design/02 §4）。reducer は純粋に保ち、抽選は外で src/core/draw を呼んで結果を渡す。
-import type { DrawState, SlotId } from '@core/draw'
+import type { DrawState } from '@core/draw'
 import type { Settings } from '@core/settings'
 import type { Draft, Mode, Workspace } from '@core/workspace'
 
@@ -12,8 +12,8 @@ export type AppState =
       workspace: Workspace
       settings: Settings
       screen: Screen
-      /** スロットごとの抽選の回数。変わったら演出を始める */
-      rolls: Record<SlotId, number>
+      /** スロット（ID）ごとの抽選の回数。変わったら演出を始める */
+      rolls: Record<string, number>
       toast: { id: number; message: string } | null
     }
 
@@ -21,7 +21,7 @@ export type ReadyState = Extract<AppState, { status: 'ready' }>
 
 export type Action =
   | { type: 'loaded'; workspace: Workspace; settings: Settings }
-  | { type: 'drew'; draw: DrawState; rolled: SlotId[] }
+  | { type: 'drew'; draw: DrawState; rolled: string[] }
   | { type: 'drawChanged'; draw: DrawState }
   | { type: 'modeChanged'; mode: Mode }
   | { type: 'draftChanged'; draft: Draft }
@@ -37,7 +37,7 @@ export function reducer(state: AppState, action: Action): AppState {
       workspace: action.workspace,
       settings: action.settings,
       screen: 'main',
-      rolls: { keyword1: 0, keyword2: 0, genre: 0 },
+      rolls: {},
       toast: null
     }
   }
@@ -46,7 +46,7 @@ export function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'drew': {
       const rolls = { ...state.rolls }
-      for (const slot of action.rolled) rolls[slot] += 1
+      for (const id of action.rolled) rolls[id] = (rolls[id] ?? 0) + 1
       return { ...state, workspace: { ...state.workspace, draw: action.draw }, rolls }
     }
     case 'drawChanged':

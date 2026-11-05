@@ -12,7 +12,7 @@ const base: IdeaRecord = {
   favorite: false,
   title: '寄生自販機チェーン',
   concept: '',
-  combination: { keyword1: '自動販売機', keyword2: '寄生', genre: '経営シミュレーション' },
+  combination: { genres: ['経営シミュレーション'], keywords: ['自動販売機', '寄生'] },
   bodyText: '',
   body: sampleIdea(),
   direction: '王道',
@@ -28,7 +28,7 @@ const base: IdeaRecord = {
 describe('ideaToMarkdown（design/04 §5.2）', () => {
   it('AI の案を決まった見出しで出し、メモが空なら節を出さない', () => {
     const md = ideaToMarkdown(base)
-    expect(md.startsWith('# 寄生自販機チェーン\n\n- キーワード: 自動販売機 / 寄生\n- ジャンル: 経営シミュレーション\n')).toBe(true)
+    expect(md.startsWith('# 寄生自販機チェーン\n\n- ジャンル: 経営シミュレーション\n- キーワード: 自動販売機 / 寄生\n')).toBe(true)
     for (const h of ['## キャッチコピー', '## ひとことで', '## プレイの一場面', '## 画面', '## 操作', '## 目的', '## 遊びの流れ', '## 悩みどころ', '## 気持ちいい瞬間', '## キーワードの使い方', '## ねらい']) {
       expect(md).toContain(h)
     }

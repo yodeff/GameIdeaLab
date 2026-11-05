@@ -78,7 +78,7 @@ export class GenerationJobs {
   derive(request: DeriveRequest): string {
     const parent = getIdea(this.deps.db, request.parentId)
     if (!parent?.body) throw new AiError('config-error', '派生の元になる AI の案が見つからない')
-    const combination = request.operation === 'genre' && request.genre ? { ...parent.combination, genre: request.genre } : parent.combination
+    const combination = request.operation === 'genre' && request.genre ? { ...parent.combination, genres: [request.genre] } : parent.combination
     const extra = {
       ...(request.genre ? { genre: request.genre } : {}),
       ...(request.instruction ? { instruction: request.instruction } : {})

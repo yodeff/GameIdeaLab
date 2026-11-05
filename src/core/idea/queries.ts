@@ -71,13 +71,13 @@ export function applyIdeaPatch(idea: IdeaRecord, patch: IdeaPatch, now: string):
 /** 検索の対象の文（タイトル・キーワード・ジャンル・本文・メモ） */
 export function searchableText(idea: IdeaRecord): string {
   const c = idea.combination
-  return [idea.title, c.keyword1, c.keyword2, c.genre, idea.body ? bodyToText(idea.body) : idea.bodyText, idea.memo].join('\n')
+  return [idea.title, ...c.genres, ...c.keywords, idea.body ? bodyToText(idea.body) : idea.bodyText, idea.memo].join('\n')
 }
 
 /** 一覧の条件に合うか（ブラウザの代わりの保存で使う。SQLite では同じ条件を SQL で書く） */
 export function matchesQuery(idea: IdeaRecord, q: IdeaListQuery): boolean {
   if (idea.saved !== (q.scope === 'saved')) return false
   if (q.favoritesOnly && !idea.favorite) return false
-  if (q.genre !== null && idea.combination.genre !== q.genre) return false
+  if (q.genre !== null && !idea.combination.genres.includes(q.genre)) return false
   return q.text === '' || searchableText(idea).toLowerCase().includes(q.text.toLowerCase())
 }

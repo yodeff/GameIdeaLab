@@ -46,8 +46,8 @@ export function planIdeas(count: number, rng: Rng): PlannedIdea[] {
 }
 
 const FIDELITY_RULES: Record<Fidelity, string> = {
-  strict: '2 つのキーワードの両方を、ルール・操作・持ち物・勝ち負けの条件の中心に入れる。',
-  standard: '少なくとも片方のキーワードをルールや操作に入れる。もう片方は舞台や見た目に使ってもよい。',
+  strict: 'すべてのキーワードを、ルール・操作・持ち物・勝ち負けの条件の中心に入れる。',
+  standard: '少なくとも 1 つのキーワードをルールや操作に入れる。残りは舞台や見た目に使ってもよい。',
   free: 'キーワードから連想したものへ飛躍してよい。ただし飛躍した先をルールや操作に入れる。'
 }
 
@@ -58,7 +58,7 @@ const DIRECTION_RULES: Record<Direction, string> = {
 }
 
 const RULES = [
-  'あなたはゲームデザイナーとして、2 つのキーワードとゲームジャンルから、遊びとして成り立つゲームのアイデアを考え、1 枚の企画書のように書く。',
+  'あなたはゲームデザイナーとして、いくつかのキーワードとゲームジャンルから、遊びとして成り立つゲームのアイデアを考え、1 枚の企画書のように書く。',
   '好みで選ばず、与えられた組み合わせを解くべき課題として扱う。判断はすべて遊ぶ人の目線で行い、作り手の都合や市場の分析は書かない。',
   '',
   '## 考える手順（出力には書かない）',
@@ -108,6 +108,17 @@ export function buildInstructions(fidelity: Fidelity): string {
   ].join('\n')
 }
 
+/** 依頼の冒頭の、キーワードとジャンルの行。ジャンルが複数なら掛け合わせ、無ければ自由に選ばせる */
+export function combinationLines(combination: Combination): string[] {
+  const genre =
+    combination.genres.length === 0
+      ? 'ゲームジャンル: 指定なし（キーワードに合うジャンルを自由に選び、「ひとことで」に書く）'
+      : combination.genres.length === 1
+        ? `ゲームジャンル: ${combination.genres[0]}`
+        : `ゲームジャンル: ${combination.genres.join(' と ')}（これらを掛け合わせる）`
+  return [...combination.keywords.map((k, i) => `キーワード${i + 1}: ${k}`), genre]
+}
+
 /**
  * 生成の依頼（input）。A モードの下書きは入れない（D-12）。
  * 1 依頼で 1 案を作り、同じ組み合わせのほかの案は別の依頼で並べて作る（jobs.ts）。of は全体の中の位置
@@ -117,12 +128,7 @@ export function buildGenerateInput(
   plan: readonly PlannedIdea[],
   of?: { index: number; total: number }
 ): string {
-  const lines = [
-    `キーワード1: ${combination.keyword1}`,
-    `キーワード2: ${combination.keyword2}`,
-    `ゲームジャンル: ${combination.genre}`,
-    ''
-  ]
+  const lines = [...combinationLines(combination), '']
   if (plan.length === 1 && plan[0]) {
     const p = plan[0]
     if (of && of.total > 1) lines.push(`この組み合わせから ${of.total} 案を別々に作る。これは ${of.index + 1} 案目で、ほかの案は別の方向で作られる。`)
@@ -162,16 +168,15 @@ export function buildDeriveInput(
   operation: DeriveOperation,
   extra: { genre?: string; instruction?: string }
 ): string {
+  const target = operation === 'genre' && extra.genre ? { ...combination, genres: [extra.genre] } : combination
   const request =
     operation === 'genre'
-      ? `ジャンルを「${extra.genre ?? combination.genre}」に変えて考え直す。キーワードの使い方は保つ。`
+      ? `ジャンルを「${extra.genre ?? combination.genres.join('・')}」に変えて考え直す。キーワードの使い方は保つ。`
       : operation === 'free'
         ? `次の指示に従って変える: ${extra.instruction ?? ''}`
         : DERIVE_RULES[operation]
   return [
-    `キーワード1: ${combination.keyword1}`,
-    `キーワード2: ${combination.keyword2}`,
-    `ゲームジャンル: ${operation === 'genre' ? (extra.genre ?? combination.genre) : combination.genre}`,
+    ...combinationLines(target),
     '',
     '元の案:',
     JSON.stringify(parent, null, 2),

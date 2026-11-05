@@ -156,7 +156,7 @@ export function AiProvider({ children }: { children: ReactNode }) {
   const app = useAppState()
   const appActions = useActions()
   const { settings } = app
-  const combination = combinationOf(app.workspace.draw.slots)
+  const combination = combinationOf(app.workspace.draw)
 
   useEffect(() => api.onAiEvent((event) => dispatch({ type: 'event', event })), [])
   useEffect(() => {

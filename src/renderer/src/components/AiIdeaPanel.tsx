@@ -183,7 +183,8 @@ export function AiIdeaPanel() {
       </div>
 
       {ai.error && !(ai.error.kind === 'not-signed-in' && !connected) && <ErrorBanner error={ai.error} />}
-      {!connected && ai.auth !== null && !running && ai.results.length === 0 && <ConnectPrompt />}
+      {/* 前の結果が残っていても、つながずに生成を押したら案内を出す（何も起きないように見えないため） */}
+      {!connected && ai.auth !== null && !running && (ai.results.length === 0 || ai.error?.kind === 'not-signed-in') && <ConnectPrompt />}
       {ai.shortfall && (
         <div className="error-banner is-info" role="status">
           <span>

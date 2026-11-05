@@ -11,7 +11,7 @@ const dictionaries: { keyword: KeywordDictionary; genre: KeywordDictionary } = {
   genre: { schemaVersion: 1, kind: 'genre', categories: [{ id: 'g', label: 'G', words: ['パズル'] }] }
 }
 const workspace = (): Workspace => ({
-  version: 1,
+  version: 2,
   mode: 'human',
   draw: initialDrawState(dictionaries, sequenceRng([0.2, 0.7])),
   draft: emptyDraft('2026-11-05T00:00:00.000Z')
@@ -24,13 +24,48 @@ describe('parseWorkspace', () => {
   })
 
   it.each([
-    ['版が違う', (w: any) => ({ ...w, version: 2 })],
+    ['版が違う', (w: any) => ({ ...w, version: 3 })],
     ['モードが違う', (w: any) => ({ ...w, mode: 'x' })],
-    ['語が長すぎる', (w: any) => ({ ...w, draw: { ...w.draw, slots: { ...w.draw.slots, genre: { ...w.draw.slots.genre, value: 'あ'.repeat(51) } } } })],
-    ['スロットが足りない', (w: any) => ({ ...w, draw: { ...w.draw, configs: { keyword1: { categoryIds: [] } } } })],
+    ['語が長すぎる', (w: any) => ({ ...w, draw: { slots: w.draw.slots.map((s: any, i: number) => (i === 0 ? { ...s, value: 'あ'.repeat(51) } : s)) } })],
+    ['キーワードが 0', (w: any) => ({ ...w, draw: { slots: w.draw.slots.filter((s: any) => s.kind !== 'keyword') } })],
+    ['キーワードが 6', (w: any) => ({ ...w, draw: { slots: [...w.draw.slots, ...[3, 4, 5, 6].map((n) => ({ ...w.draw.slots[1], id: `k${n}` }))] } })],
+    ['ID が重なる', (w: any) => ({ ...w, draw: { slots: [...w.draw.slots, w.draw.slots[2]] } })],
+    ['ジャンルが右にある', (w: any) => ({ ...w, draw: { slots: [...w.draw.slots.slice(1), w.draw.slots[0]] } })],
+    ['種類が違う', (w: any) => ({ ...w, draw: { slots: w.draw.slots.map((s: any) => ({ ...s, kind: 'x' })) } })],
     ['下書きが長すぎる', (w: any) => ({ ...w, draft: { ...w.draft, body: 'あ'.repeat(20_001) } })]
   ])('%s なら null', (_name, broken) => {
     expect(parseWorkspace(broken(workspace()))).toBeNull()
+  })
+})
+
+describe('作業状態の版 1 → 版 2', () => {
+  const slot = (value: string, locked = false) => ({ value, source: 'draw', categoryId: 'a', locked })
+  const v1 = {
+    version: 1,
+    mode: 'ai',
+    draw: {
+      slots: { keyword1: slot('鍵'), keyword2: slot('扉', true), genre: slot('パズル') },
+      configs: { keyword1: { categoryIds: ['a'] }, keyword2: { categoryIds: [] }, genre: { categoryIds: [] } },
+      history: { keyword1: ['鍵'], keyword2: [], genre: ['パズル'] }
+    },
+    draft: { title: '', body: '下書き', startedWith: { keyword1: '鍵', keyword2: '扉', genre: 'パズル' }, updatedAt: '2026-11-01T00:00:00.000Z' }
+  }
+
+  it('ジャンルを左にした並びに直し、固定・カテゴリ・履歴・書き始めの組み合わせを引き継ぐ', () => {
+    const ws = parseWorkspace(v1)
+    expect(ws?.version).toBe(2)
+    expect(ws?.draw.slots.map((s) => [s.id, s.kind, s.value, s.locked])).toEqual([
+      ['g1', 'genre', 'パズル', false],
+      ['k1', 'keyword', '鍵', false],
+      ['k2', 'keyword', '扉', true]
+    ])
+    expect(ws?.draw.slots[1]?.categoryIds).toEqual(['a'])
+    expect(ws?.draw.slots[0]?.history).toEqual(['パズル'])
+    expect(ws?.draft.startedWith).toEqual({ genres: ['パズル'], keywords: ['鍵', '扉'] })
+  })
+
+  it('版 1 の形が崩れていれば null', () => {
+    expect(parseWorkspace({ ...v1, draw: { ...v1.draw, configs: {} } })).toBeNull()
   })
 })
 
@@ -48,7 +83,7 @@ describe('parseSettingsPatch', () => {
 })
 
 describe('parseHumanIdeaInput', () => {
-  const combination = { keyword1: '鍵', keyword2: '扉', genre: 'パズル' }
+  const combination = { genres: ['パズル'], keywords: ['鍵', '扉'] }
 
   it('タイトルが空なら本文の 1 行目から作る（D-11）', () => {
     expect(parseHumanIdeaInput({ title: ' ', body: '  鍵を育てるパズル\n二行目', combination })).toEqual({
@@ -63,6 +98,6 @@ describe('parseHumanIdeaInput', () => {
   })
 
   it('組み合わせが欠けていれば null', () => {
-    expect(parseHumanIdeaInput({ title: '', body: '本文', combination: { keyword1: '鍵', keyword2: '', genre: 'パズル' } })).toBeNull()
+    expect(parseHumanIdeaInput({ title: '', body: '本文', combination: { genres: ['パズル'], keywords: ['鍵', ''] } })).toBeNull()
   })
 })

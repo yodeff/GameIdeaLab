@@ -10,6 +10,7 @@ export {
   DERIVE_LABELS,
   EXPERIMENT_AXES,
   buildDeriveInput,
+  combinationLines,
   buildGenerateInput,
   buildInstructions,
   directionsFor,

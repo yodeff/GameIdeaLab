@@ -6,6 +6,7 @@ import {
   buildGenerateInput,
   buildInstructions,
   bodyToText,
+  combinationLines,
   createIdeaStreamParser,
   directionsFor,
   planIdeas,
@@ -16,7 +17,7 @@ import {
 import { sampleIdea } from '../support/ideas'
 import { seededRng } from '../support/rng'
 
-const combination = { keyword1: '自動販売機', keyword2: '寄生', genre: '経営シミュレーション' }
+const combination = { genres: ['経営シミュレーション'], keywords: ['自動販売機', '寄生'] }
 
 describe('directionsFor（D-13）', () => {
   it.each([
@@ -32,7 +33,7 @@ describe('指示文', () => {
   it('忠実度ごとに違う規則が入り、方向の意味と避けることが入る', () => {
     const strict = buildInstructions('strict')
     const free = buildInstructions('free')
-    expect(strict).toContain('両方を')
+    expect(strict).toContain('すべてのキーワードを')
     expect(free).toContain('飛躍してよい')
     for (const s of [strict, free]) {
       expect(s).toContain('欲張るほど')
@@ -61,6 +62,29 @@ describe('指示文', () => {
     expect(genre).toContain('寄生自販機チェーン')
     expect(genre).toContain('「変化球」')
     expect(buildDeriveInput(combination, parent, 'free', { instruction: '協力プレイにする' })).toContain('協力プレイにする')
+  })
+})
+
+describe('combinationLines（スロットの数が変わる）', () => {
+  it('ジャンルが 1 つならそのまま、キーワードは並んだ数だけ番号を振る', () => {
+    expect(combinationLines({ genres: ['パズル'], keywords: ['鍵', '扉', '鏡'] })).toEqual([
+      'キーワード1: 鍵',
+      'キーワード2: 扉',
+      'キーワード3: 鏡',
+      'ゲームジャンル: パズル'
+    ])
+  })
+
+  it('ジャンルが無ければ自由に選ばせ、複数なら掛け合わせる', () => {
+    expect(combinationLines({ genres: [], keywords: ['鍵'] }).at(-1)).toMatch(/指定なし.*自由に選び/)
+    expect(combinationLines({ genres: ['パズル', 'RPG'], keywords: ['鍵'] }).at(-1)).toBe('ゲームジャンル: パズル と RPG（これらを掛け合わせる）')
+  })
+
+  it('生成の依頼にもその行が入る', () => {
+    const input = buildGenerateInput({ genres: [], keywords: ['鍵'] }, [{ direction: '王道', axis: null }])
+    expect(input).toContain('キーワード1: 鍵')
+    expect(input).not.toContain('キーワード2')
+    expect(input).toContain('ゲームジャンル: 指定なし')
   })
 })
 

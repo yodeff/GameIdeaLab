@@ -9,17 +9,20 @@
 ### 1.1 型
 
 ```ts
-type SlotId = 'keyword1' | 'keyword2' | 'genre'
-type Combination = { keyword1: string; keyword2: string; genre: string }
-
-type SlotConfig = { categoryIds: string[] }          // 空 = すべて（D-1）
-type SlotState = {
+// 2026-11-05 にスロットを可変にした（DECISIONS/0005）。ジャンル 0〜3（初期 1）、キーワード 1〜5（初期 2）
+type SlotKind = 'genre' | 'keyword'
+type Slot = {
+  id: string                                         // 'g1'・'k2' など。種類ごとの連番
+  kind: SlotKind
   value: string
   source: 'draw' | 'manual'
   categoryId: string | null                          // 手動入力なら null
   locked: boolean
+  categoryIds: string[]                              // 空 = すべて（D-1）
+  history: string[]                                  // このスロットの直近 20 語（D-3）
 }
-type DrawHistory = Record<SlotId, string[]>          // スロットごとの直近 20 語（D-3）
+type DrawState = { slots: Slot[] }                   // ジャンルが左、キーワードが右の順に並ぶ
+type Combination = { genres: string[]; keywords: string[] }
 type Rng = () => number                              // [0, 1)。テストでは固定の列
 ```
 
@@ -28,12 +31,14 @@ type Rng = () => number                              // [0, 1)。テストでは
 1 つのスロットを引くとき:
 
 1. 候補のカテゴリ = スロットで選んだカテゴリ（空ならすべて）のうち、単語が 1 つ以上あるもの（D-2）。0 なら「すべて」に戻す。
-2. 除く語 = 同じ組み合わせのもう一方のキーワード（必須、D-3）＋ このスロットの直近 20 語（努力目標）。
+2. 除く語 = 同じ種類のほかのスロットの語（必須、D-3）＋ このスロットの直近 20 語（努力目標）。
 3. カテゴリを均等に選び、その中から除く語以外を均等に選ぶ（企画書 §5.6）。選んだカテゴリに残りが無ければ、残りのある候補のカテゴリから選び直す。
-4. それでも無ければ直近の除外をやめる。それでも無ければ（辞書が極端に小さい）もう一方のキーワードだけを除いて選ぶ。
+4. それでも無ければ直近の除外をやめ、同じ種類のほかのスロットの語だけを除いて選ぶ。
 5. 結果を返し、直近の履歴の先頭に足す（20 を超えたら古いものを捨てる）。
 
-一括抽選は固定していないスロットを keyword1 → keyword2 → genre の順に引く（keyword2 は新しい keyword1 を除く）。ジャンルのスロットは keyword とは別の辞書を使い、重複の除外はスロットの中だけ。
+一括抽選は固定していないスロットを左から順に引く（後のスロットは先に引いた同じ種類の語を除く）。ジャンルのスロットはキーワードとは別の辞書を使い、重複の除外は同じ種類の中だけ。
+
+スロットを足すと、同じ種類の並びの右端に入り、すぐに引く。上限・下限を超える足し外しは何もしない。ジャンルが 0 のときは「ジャンル自由」で、AI にはキーワードに合うジャンルを選ばせる（§3.3 の `combinationLines`）。ジャンルが 2 つ以上なら掛け合わせる。
 
 将来の「単語単位の均等」（企画書 §5.6）は、手順 3 の重みを差し替えるだけで足せるよう、選び方を関数として渡せる形にしておく（MVP では作らない）。
 
@@ -65,15 +70,14 @@ type Rng = () => number                              // [0, 1)。テストでは
 ```ts
 type Workspace = {
   mode: 'human' | 'ai'
-  slots: Record<SlotId, SlotState>
-  slotConfigs: Record<SlotId, SlotConfig>
-  history: DrawHistory
+  version: 2
+  draw: DrawState                                    // スロットのカテゴリと直近の語も Slot の中に持つ
   draft: { title: string; body: string; startedWith: Combination | null; updatedAt: string }
   lastGeneration: { jobId: string; combination: Combination; ideaIds: string[] } | null
 }
 ```
 
-`workspace` 表に JSON で 1 行だけ保存する（§4）。`lastGeneration` は持たず、起動時に履歴から最後の生成とその派生を読み直す（`latestGeneration`、2026-11-05）。形を変えるときは `version` を上げ、読み込みで古い形を新しい形に直す。
+`workspace` 表に JSON で 1 行だけ保存する（§4）。`lastGeneration` は持たず、起動時に履歴から最後の生成とその派生を読み直す（`latestGeneration`、2026-11-05）。形を変えるときは `version` を上げ、読み込みで古い形を新しい形に直す（版 1 の 3 スロットは `g1`・`k1`・`k2` に直す）。
 
 ## 3. アイデア
 
@@ -144,9 +148,11 @@ CREATE TABLE ideas (
   favorite         INTEGER NOT NULL DEFAULT 0,
   title            TEXT NOT NULL,
   concept          TEXT NOT NULL DEFAULT '',
-  keyword1         TEXT NOT NULL,
+  keyword1         TEXT NOT NULL,              -- 版 1 の列。版 2 からは先頭の語を入れて残すだけ
   keyword2         TEXT NOT NULL,
   genre            TEXT NOT NULL,
+  keywords         TEXT NOT NULL DEFAULT '[]', -- 版 2（2026-11-05）。キーワードの JSON 配列
+  genres           TEXT NOT NULL DEFAULT '[]', -- 版 2。ジャンルの JSON 配列（空 = ジャンル自由）
   body_text        TEXT NOT NULL DEFAULT '',   -- A モードの本文。AI の案は検索用に全項目をつないだ文
   body_json        TEXT,                       -- AI の案の項目（§3.1）。A モードは NULL
   direction        TEXT,                       -- 王道・変化球・実験的
@@ -166,7 +172,7 @@ CREATE TABLE workspace (id INTEGER PRIMARY KEY CHECK (id = 1), version INTEGER N
 ```
 
 - 履歴の削除（D-17）: 未保存（`saved = 0`）の案を新しい順に 200 件残す。生成が終わるたびに 1 回。派生の元として参照されていても消してよい（`parent_id` は NULL になる）。
-- 検索（D-18）: MVP は `title`・`keyword1`・`keyword2`・`genre`・`body_text`・`memo` の `LIKE`。件数が増えて遅くなったら FTS5 に替える（使えることは確かめた。DECISIONS/0004）。
+- 検索（D-18）: MVP は `title`・`keywords`・`genres`・`body_text`・`memo` の `LIKE`。ジャンルでの絞り込みは `json_each(genres)` で 1 つでも一致すれば出す。件数が増えて遅くなったら FTS5 に替える（使えることは確かめた。DECISIONS/0004）。
 - お気に入りは保存済みでなくても付けられる。お気に入りを付けたら自動で保存済みにする（お気に入りが履歴の削除で消えないように）。
 
 ### 設定の項目（`settings`）

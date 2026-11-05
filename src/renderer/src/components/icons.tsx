@@ -81,3 +81,15 @@ export const StarIcon = ({ filled = false, ...p }: SVGProps<SVGSVGElement> & { f
     <path d="m12 3 2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 17.3 6.4 20.2l1.1-6.2L3 9.6l6.2-.9z" />
   </svg>
 )
+
+export const CloseIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+)
+
+export const PlusIcon = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <path d="M12 5v14M5 12h14" />
+  </svg>
+)

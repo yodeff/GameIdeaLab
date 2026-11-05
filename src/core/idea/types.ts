@@ -1,5 +1,5 @@
 // アイデアの型（design/04 §3.1・§4）。
-import { MANUAL_MAX_LENGTH, SLOT_IDS, type Combination, type SlotConfig, type SlotId } from '../draw'
+import { parseCombination, type Combination } from '../draw'
 import type { Fidelity } from '../settings'
 import { isRecord, isString } from '../validate'
 
@@ -57,7 +57,8 @@ export type IdeaRecord = {
   generationId: string | null
   model: string | null
   fidelity: Fidelity | null
-  drawContext: Record<SlotId, SlotConfig> | null
+  /** 抽選の条件（スロットごとのカテゴリ）。今は使っていない */
+  drawContext: Record<string, string[]> | null
 }
 
 export type HumanIdeaInput = {
@@ -74,8 +75,8 @@ const AUTO_TITLE_LENGTH = 40
 /** A モードの保存の入力を検査し、タイトルを補う。不正なら null */
 export function parseHumanIdeaInput(v: unknown): HumanIdeaInput | null {
   if (!isRecord(v) || !isString(v['title'], IDEA_TITLE_MAX) || !isString(v['body'], IDEA_BODY_MAX)) return null
-  const c = v['combination']
-  if (!isRecord(c) || !SLOT_IDS.every((slot) => isString(c[slot], MANUAL_MAX_LENGTH, 1))) return null
+  const combination = parseCombination(v['combination'])
+  if (!combination) return null
   const body = v['body'].trim()
   if (body === '') return null
   const firstLine = body.split(/\r?\n/)[0]?.trim() ?? ''
@@ -83,6 +84,6 @@ export function parseHumanIdeaInput(v: unknown): HumanIdeaInput | null {
   return {
     title,
     body,
-    combination: { keyword1: c['keyword1'] as string, keyword2: c['keyword2'] as string, genre: c['genre'] as string }
+    combination
   }
 }
